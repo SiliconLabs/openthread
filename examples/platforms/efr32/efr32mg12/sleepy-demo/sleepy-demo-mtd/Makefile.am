@@ -36,8 +36,8 @@ EFR32_BOARD_DIR = $(shell echo $(BOARD) | tr A-Z a-z)
 
 SDK_SRC_DIR = $(top_srcdir)/third_party/silabs/gecko_sdk_suite/v2.7
 
-$(top_builddir)/examples/platforms/efr32mg12/libopenthread-efr32mg12.a:
-	(cd $(top_builddir)/examples/platforms/efr32mg12/ && $(MAKE) $(AM_MAKEFLAGS) libopenthread-efr32mg12.a )
+$(top_builddir)/examples/platforms/efr32/libopenthread-efr32mg12.a:
+	(cd $(top_builddir)/examples/platforms/efr32/ && $(MAKE) $(AM_MAKEFLAGS) libopenthread-efr32mg12.a )
 
 bin_PROGRAMS                                                                  = \
     $(NULL)
