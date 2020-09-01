@@ -27,29 +27,37 @@
  */
 
 /**
- * @file
- *   This file implements gcc-specific startup code for the efr32.
+ * @file logging.c
+ * Platform abstraction for the logging
+ *
  */
 
-__extension__ typedef int __guard __attribute__((mode(__DI__)));
+#include <openthread-core-config.h>
+#include <openthread/config.h>
+#include <openthread/platform/alarm-milli.h>
+#include <openthread/platform/logging.h>
 
-int __cxa_guard_acquire(__guard *g)
+#include <utils/logging_rtt.h>
+
+#if (OPENTHREAD_CONFIG_LOG_OUTPUT == OPENTHREAD_CONFIG_LOG_OUTPUT_PLATFORM_DEFINED)
+void efr32LogInit(void)
 {
-    return !*(char *)(g);
+    utilsLogRttInit();
 }
 
-void __cxa_guard_release(__guard *g)
+void efr32LogDeinit(void)
 {
-    *(char *)g = 1;
+    utilsLogRttDeinit();
 }
 
-void __cxa_guard_abort(__guard *g)
+OT_TOOL_WEAK void otPlatLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat, ...)
 {
-    (void)g;
-}
+    va_list ap;
 
-void __cxa_pure_virtual(void)
-{
-    while (1)
-        ;
+    va_start(ap, aFormat);
+
+    utilsLogRttOutput(aLogLevel, aLogRegion, aFormat, ap);
+
+    va_end(ap);
 }
+#endif

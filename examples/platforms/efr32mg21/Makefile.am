@@ -94,19 +94,19 @@ libopenthread_efr32mg21_a_CPPFLAGS                                            = 
     $(NULL)
 
 PLATFORM_SOURCES                                                              = \
-    alarm.c                                                                     \
-    diag.c                                                                      \
+    ../efr32/alarm.c                                                                     \
+    ../efr32/diag.c                                                                      \
     entropy.c                                                                   \
-    fem-control.c                                                               \
-    flash.c                                                                     \
-    logging.c                                                                   \
+    ../efr32/fem-control.c                                                               \
+    ../efr32/flash.c                                                                     \
+    ../efr32/logging.c                                                                   \
     misc.c                                                                      \
     openthread-core-efr32-config.h                                              \
     platform-efr32.h                                                            \
     platform-band.h                                                             \
     radio.c                                                                     \
     rail_config.h                                                               \
-    startup-gcc.c                                                               \
+    ../efr32/startup-gcc.c                                                               \
     system.c                                                                    \
     uart.c                                                                      \
     $(NULL)
