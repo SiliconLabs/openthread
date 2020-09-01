@@ -52,7 +52,8 @@ libopenthread_efr32mg21_a_CPPFLAGS                                            = 
     -DPLATFORM_HEADER=\"platform/base/hal/micro/cortexm3/compiler/gcc.h\"       \
     -Wno-sign-compare                                                           \
     -I$(top_srcdir)/examples/platforms                                          \
-    -I$(top_srcdir)/examples/platforms/efr32mg21/$(EFR32_BOARD_DIR)             \
+    -I$(top_srcdir)/examples/platforms/efr32/efr32mg21/$(EFR32_BOARD_DIR)       \
+    -I$(top_srcdir)/examples/platforms/efr32/src                                \
     -I$(top_srcdir)/include                                                     \
     -I$(top_srcdir)/src/core                                                    \
     -I$(top_srcdir)/third_party/silabs/rail_config                              \
@@ -93,20 +94,23 @@ libopenthread_efr32mg21_a_CPPFLAGS                                            = 
     -Wno-missing-field-initializers                                             \
     $(NULL)
 
+PLATFORM_COMMON_SOURCES                                                       = \
+    src/alarm.c                                                                 \
+    src/diag.c                                                                  \
+    src/fem-control.c                                                           \
+    src/flash.c                                                                 \
+    src/logging.c                                                               \
+    src/startup-gcc.c                                                           \
+    $(NULL)
+
 PLATFORM_SOURCES                                                              = \
-    ../efr32/alarm.c                                                                     \
-    ../efr32/diag.c                                                                      \
     entropy.c                                                                   \
-    ../efr32/fem-control.c                                                               \
-    ../efr32/flash.c                                                                     \
-    ../efr32/logging.c                                                                   \
     misc.c                                                                      \
     openthread-core-efr32-config.h                                              \
     platform-efr32.h                                                            \
     platform-band.h                                                             \
     radio.c                                                                     \
     rail_config.h                                                               \
-    ../efr32/startup-gcc.c                                                               \
     system.c                                                                    \
     uart.c                                                                      \
     $(NULL)
@@ -117,6 +121,7 @@ noinst_HEADERS                                                                = 
     $(NULL)
 
 libopenthread_efr32mg21_a_SOURCES                                             = \
+    $(PLATFORM_COMMON_SOURCES)                                                  \
     $(PLATFORM_SOURCES)                                                         \
     $(NULL)
 
