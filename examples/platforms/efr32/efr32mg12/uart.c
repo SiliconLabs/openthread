@@ -49,26 +49,7 @@ enum
     kReceiveFifoSize = 128,
 };
 
-#define USART_INIT                                                                               \
-    {                                                                                            \
-        USART0,                                               /* USART port */                   \
-            115200,                                           /* Baud rate */                    \
-            BSP_SERIAL_APP_TX_LOC,                            /* USART Tx pin location number */ \
-            BSP_SERIAL_APP_RX_LOC,                            /* USART Rx pin location number */ \
-            (USART_Stopbits_TypeDef)USART_FRAME_STOPBITS_ONE, /* Stop bits */                    \
-            (USART_Parity_TypeDef)USART_FRAME_PARITY_NONE,    /* Parity */                       \
-            (USART_OVS_TypeDef)USART_CTRL_OVS_X16,            /* Oversampling mode*/             \
-            false,                                            /* Majority vote disable */        \
-            HAL_SERIAL_APP_FLOW_CONTROL,                      /* Flow control */                 \
-            BSP_SERIAL_APP_CTS_PORT,                          /* CTS port number */              \
-            BSP_SERIAL_APP_CTS_PIN,                           /* CTS pin number */               \
-            BSP_SERIAL_APP_RTS_PORT,                          /* RTS port number */              \
-            BSP_SERIAL_APP_RTS_PIN,                           /* RTS pin number */               \
-            (UARTDRV_Buffer_FifoQueue_t *)&sUartRxQueue,      /* RX operation queue */           \
-            (UARTDRV_Buffer_FifoQueue_t *)&sUartTxQueue,      /* TX operation queue */           \
-            BSP_SERIAL_APP_CTS_LOC,                           /* CTS location */                 \
-            BSP_SERIAL_APP_RTS_LOC                            /* RTS location */                 \
-    }
+#include "uart-init.h"
 
 DEFINE_BUF_QUEUE(EMDRV_UARTDRV_MAX_CONCURRENT_RX_BUFS, sUartRxQueue);
 DEFINE_BUF_QUEUE(EMDRV_UARTDRV_MAX_CONCURRENT_TX_BUFS, sUartTxQueue);
