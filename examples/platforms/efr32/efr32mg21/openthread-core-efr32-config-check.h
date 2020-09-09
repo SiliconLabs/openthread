@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2019, The OpenThread Authors.
+ *  Copyright (c) 2020, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,16 @@
 #ifndef OPENTHREAD_CORE_EFR32_CONFIG_CHECK_H_
 #define OPENTHREAD_CORE_EFR32_CONFIG_CHECK_H_
 
+#include "board_config.h"
+
 #if OPENTHREAD_CONFIG_TIME_SYNC_ENABLE
-#error "Platform efr32mg21 doesn't support configuration option: OPENTHREAD_CONFIG_TIME_SYNC_ENABLE"
+#error "Platform doesn't support configuration option: OPENTHREAD_CONFIG_TIME_SYNC_ENABLE"
 #endif
 
+#ifndef RADIO_CONFIG_915MHZ_OQPSK_SUPPORT
 #if OPENTHREAD_CONFIG_RADIO_915MHZ_OQPSK_SUPPORT
-#error "Platform efr32mg21 doesn't support configuration option: OPENTHREAD_CONFIG_RADIO_915MHZ_OQPSK_SUPPORT"
+#error "Platform not configured to support configuration option: OPENTHREAD_CONFIG_RADIO_915MHZ_OQPSK_SUPPORT"
+#endif
 #endif
 
 #endif /* OPENTHREAD_CORE_EFR32_CONFIG_CHECK_H_ */
