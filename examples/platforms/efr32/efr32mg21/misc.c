@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2019, The OpenThread Authors.
+ *  Copyright (c) 2020, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -57,8 +57,9 @@ otPlatResetReason otPlatGetResetReason(otInstance *aInstance)
 {
     OT_UNUSED_VARIABLE(aInstance);
 
-    otPlatResetReason reason;
+    otPlatResetReason reason = OT_PLAT_RESET_REASON_UNKNOWN;
 
+    #if defined(_EMU_RSTCAUSE_MASK)
     if (sResetCause & EMU_RSTCAUSE_POR)
     {
         reason = OT_PLAT_RESET_REASON_POWER_ON;
@@ -85,11 +86,34 @@ otPlatResetReason otPlatGetResetReason(otInstance *aInstance)
     {
         reason = OT_PLAT_RESET_REASON_ASSERT;
     }
-    else
+    #endif
+    #if defined(_RMU_RSTCAUSE_MASK)
+    if (sResetCause & RMU_RSTCAUSE_PORST)
     {
-        reason = OT_PLAT_RESET_REASON_UNKNOWN;
+        reason = OT_PLAT_RESET_REASON_POWER_ON;
     }
-
+    else if (sResetCause & RMU_RSTCAUSE_SYSREQRST)
+    {
+        reason = OT_PLAT_RESET_REASON_SOFTWARE;
+    }
+    else if (sResetCause & RMU_RSTCAUSE_WDOGRST)
+    {
+        reason = OT_PLAT_RESET_REASON_WATCHDOG;
+    }
+    else if (sResetCause & RMU_RSTCAUSE_EXTRST)
+    {
+        reason = OT_PLAT_RESET_REASON_EXTERNAL;
+    }
+    else if (sResetCause & RMU_RSTCAUSE_LOCKUPRST)
+    {
+        reason = OT_PLAT_RESET_REASON_FAULT;
+    }
+    else if ((sResetCause & RMU_RSTCAUSE_AVDDBOD) || (sResetCause & RMU_RSTCAUSE_DECBOD) ||
+             (sResetCause & RMU_RSTCAUSE_DVDDBOD) || (sResetCause & RMU_RSTCAUSE_EM4RST))
+    {
+        reason = OT_PLAT_RESET_REASON_ASSERT;
+    }
+    #endif
     return reason;
 }
 
