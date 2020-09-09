@@ -89,7 +89,7 @@ EFR32_MBEDTLS_CPPFLAGS += -Wno-unused-function
 EFR32_MBEDTLS_CPPFLAGS += -Wno-unused-parameter
 
 
-EFR32_PLATFORM = efr32mg12
+EFR32_PLATFORM = efr32mg21
 EFR32_BOARD = $(shell echo $(BOARD) | tr A-Z a-z)
 
 CONFIG_FILE_PATH = $(AbsTopSourceDir)/examples/platforms/efr32/

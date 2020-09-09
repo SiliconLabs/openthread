@@ -42,6 +42,7 @@ override CXXFLAGS := $(filter-out -pedantic-errors,$(CXXFLAGS))
 override CFLAGS   := $(filter-out -Wundef,$(CFLAGS))
 override CXXFLAGS := $(filter-out -Wundef,$(CXXFLAGS))
 
+EFR32_PLATFORM = efr32mg12
 EFR32_BOARD_DIR = $(shell echo $(BOARD) | tr A-Z a-z)
 
 SDK_SRC_DIR = $(top_srcdir)/third_party/silabs/gecko_sdk_suite/v2.7
@@ -56,7 +57,8 @@ libopenthread_efr32mg12_a_CPPFLAGS                                            = 
     -DCORTEXM3_EFM32_MICRO                                                      \
     -DPLAT=EMBER_PLATFORM_CORTEXM3                                              \
     -I$(top_srcdir)/examples/platforms                                          \
-    -I$(top_srcdir)/examples/platforms/efr32/efr32mg12/$(EFR32_BOARD_DIR)       \
+    -I$(top_srcdir)/examples/platforms/efr32/$(EFR32_PLATFORM)/$(EFR32_BOARD_DIR) \
+    -I$(top_srcdir)/examples/platforms/efr32/$(EFR32_PLATFORM)                  \
     -I$(top_srcdir)/examples/platforms/efr32/src                                \
     -I$(top_srcdir)/include                                                     \
     -I$(top_srcdir)/src/core                                                    \
