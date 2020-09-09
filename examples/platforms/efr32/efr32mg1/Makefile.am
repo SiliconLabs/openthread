@@ -106,6 +106,8 @@ PLATFORM_COMMON_SOURCES                                                       = 
     src/flash.c                                                                 \
     src/logging.c                                                               \
     src/misc.c                                                                  \
+    src/openthread-core-efr32-config.h                                          \
+    src/openthread-core-efr32-config-check.h                                    \
     src/rail_config.h                                                           \
     src/startup-gcc.c                                                           \
     src/uart.c                                                                  \
@@ -113,8 +115,6 @@ PLATFORM_COMMON_SOURCES                                                       = 
 
 PLATFORM_SOURCES                                                              = \
     efr32mg1/entropy.c                                                          \
-    efr32mg1/openthread-core-efr32-config.h                                     \
-    efr32mg1/openthread-core-efr32-config-check.h                               \
     efr32mg1/platform-efr32.h                                                   \
     efr32mg1/platform-band.h                                                    \
     efr32mg1/radio.c                                                            \
