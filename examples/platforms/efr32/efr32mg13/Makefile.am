@@ -104,13 +104,13 @@ PLATFORM_COMMON_SOURCES                                                       = 
     src/fem-control.c                                                           \
     src/flash.c                                                                 \
     src/logging.c                                                               \
+    src/misc.c                                                                  \
     src/startup-gcc.c                                                           \
     src/uart.c                                                                  \
     $(NULL)
 
 PLATFORM_SOURCES                                                              = \
     efr32mg13/entropy.c                                                         \
-    efr32mg13/misc.c                                                            \
     efr32mg13/openthread-core-efr32-config.h                                    \
     efr32mg13/openthread-core-efr32-config-check.h                              \
     efr32mg13/platform-efr32.h                                                  \
