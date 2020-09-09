@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2019, The OpenThread Authors.
+ *  Copyright (c) 2020, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 #include "em_cmu.h"
 #include "em_emu.h"
 #include "gpiointerrupt.h"
-#include "hal-config-board.h"
+#include "hal-config.h"
 #include "hal_common.h"
 #include "openthread-system.h"
 #include <assert.h>
