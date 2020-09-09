@@ -55,7 +55,6 @@
 #include "sl_mpu.h"
 #include "sl_sleeptimer.h"
 
-#include "openthread-core-efr32-config.h"
 #include "platform-efr32.h"
 
 #if (HAL_FEM_ENABLE)
