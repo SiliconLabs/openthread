@@ -198,7 +198,7 @@ SILABS_EFR32MG13_SOURCES                                                        
     gecko_sdk_suite/v2.7/hardware/kit/common/drivers/mx25flash_spi.c                                 \
     gecko_sdk_suite/v2.7/hardware/kit/common/drivers/retargetserial.c                                \
     gecko_sdk_suite/v2.7/platform/Device/SiliconLabs/EFR32MG13P/Source/system_efr32mg13p.c           \
-    gecko_sdk_suite/v2.7//platform/Device/SiliconLabs/EFR32MG13P/Source/GCC/startup_efr32mg13p.c     \
+    gecko_sdk_suite/v2.7/platform/Device/SiliconLabs/EFR32MG13P/Source/GCC/startup_efr32mg13p.c      \
     $(NULL)
 
 SILABS_EFR32MG21_SOURCES                                                                      = \
@@ -256,7 +256,7 @@ libsilabs_efr32mg21_sdk_a_SOURCES                                               
     $(NULL)
 
 noinst_HEADERS                                                                                = \
-        $(NULL) 
+        $(NULL)
 
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
