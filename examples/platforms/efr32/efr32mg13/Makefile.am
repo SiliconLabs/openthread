@@ -105,6 +105,7 @@ PLATFORM_COMMON_SOURCES                                                       = 
     src/flash.c                                                                 \
     src/logging.c                                                               \
     src/misc.c                                                                  \
+    src/rail_config.h                                                           \
     src/startup-gcc.c                                                           \
     src/uart.c                                                                  \
     $(NULL)
@@ -116,7 +117,6 @@ PLATFORM_SOURCES                                                              = 
     efr32mg13/platform-efr32.h                                                  \
     efr32mg13/platform-band.h                                                   \
     efr32mg13/radio.c                                                           \
-    efr32mg13/rail_config.h                                                     \
     efr32mg13/system.c                                                          \
     efr32mg13/uart-init.h                                                       \
     $(NULL)
