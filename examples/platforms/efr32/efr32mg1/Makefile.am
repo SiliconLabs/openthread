@@ -99,31 +99,32 @@ libopenthread_efr32mg1_a_CPPFLAGS                                             = 
     -Wno-missing-field-initializers                                             \
     $(NULL)
 
-PLATFORM_COMMON_SOURCES                                                              = \
-    src/alarm.c                                                                     \
-    src/diag.c                                                                      \
-    src/fem-control.c                                                               \
-    src/flash.c                                                                     \
-    src/logging.c                                                                   \
-    src/startup-gcc.c                                                               \
+PLATFORM_COMMON_SOURCES                                                       = \
+    src/alarm.c                                                                 \
+    src/diag.c                                                                  \
+    src/fem-control.c                                                           \
+    src/flash.c                                                                 \
+    src/logging.c                                                               \
+    src/startup-gcc.c                                                           \
+    src/uart.c                                                                  \
     $(NULL)
 
 PLATFORM_SOURCES                                                              = \
-    entropy.c                                                                   \
-    misc.c                                                                      \
-    openthread-core-efr32-config.h                                              \
-    openthread-core-efr32-config-check.h                                        \
-    platform-efr32.h                                                            \
-    platform-band.h                                                             \
-    radio.c                                                                     \
-    rail_config.h                                                               \
-    system.c                                                                    \
-    uart.c                                                                      \
+    efr32mg1/entropy.c                                                          \
+    efr32mg1/misc.c                                                             \
+    efr32mg1/openthread-core-efr32-config.h                                     \
+    efr32mg1/openthread-core-efr32-config-check.h                               \
+    efr32mg1/platform-efr32.h                                                   \
+    efr32mg1/platform-band.h                                                    \
+    efr32mg1/radio.c                                                            \
+    efr32mg1/rail_config.h                                                      \
+    efr32mg1/system.c                                                           \
+    efr32mg1/uart-init.h                                                        \
     $(NULL)
 
 noinst_HEADERS                                                                = \
-    platform-efr32.h                                                            \
-    platform-band.h                                                             \
+    efr32mg1/platform-efr32.h                                                   \
+    efr32mg1/platform-band.h                                                    \
     $(NULL)
 
 libopenthread_efr32mg1_a_SOURCES                                              = \

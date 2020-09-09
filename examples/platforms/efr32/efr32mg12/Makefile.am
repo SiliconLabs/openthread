@@ -98,31 +98,32 @@ libopenthread_efr32mg12_a_CPPFLAGS                                            = 
     -Wno-missing-field-initializers                                             \
     $(NULL)
 
-PLATFORM_COMMON_SOURCES                                                           = \
-    src/alarm.c                                                                     \
-    src/diag.c                                                                      \
-    src/fem-control.c                                                               \
-    src/flash.c                                                                     \
-    src/logging.c                                                                   \
-    src/startup-gcc.c                                                               \
+PLATFORM_COMMON_SOURCES                                                       = \
+    src/alarm.c                                                                 \
+    src/diag.c                                                                  \
+    src/fem-control.c                                                           \
+    src/flash.c                                                                 \
+    src/logging.c                                                               \
+    src/startup-gcc.c                                                           \
+    src/uart.c                                                                  \
     $(NULL)
 
 PLATFORM_SOURCES                                                              = \
-    efr32mg12/entropy.c                                                                   \
-    efr32mg12/misc.c                                                                      \
-    efr32mg12/openthread-core-efr32-config.h                                              \
-    efr32mg12/openthread-core-efr32-config-check.h                                        \
-    efr32mg12/platform-efr32.h                                                            \
-    efr32mg12/platform-band.h                                                             \
-    efr32mg12/radio.c                                                                     \
-    efr32mg12/rail_config.h                                                               \
-    efr32mg12/system.c                                                                    \
-    efr32mg12/uart.c                                                                      \
+    efr32mg12/entropy.c                                                         \
+    efr32mg12/misc.c                                                            \
+    efr32mg12/openthread-core-efr32-config.h                                    \
+    efr32mg12/openthread-core-efr32-config-check.h                              \
+    efr32mg12/platform-efr32.h                                                  \
+    efr32mg12/platform-band.h                                                   \
+    efr32mg12/radio.c                                                           \
+    efr32mg12/rail_config.h                                                     \
+    efr32mg12/system.c                                                          \
+    efr32mg12/uart-init.h                                                       \
     $(NULL)
 
 noinst_HEADERS                                                                = \
-    efr32mg12/platform-efr32.h                                                            \
-    efr32mg12/platform-band.h                                                             \
+    efr32mg12/platform-efr32.h                                                  \
+    efr32mg12/platform-band.h                                                   \
     $(NULL)
 
 libopenthread_efr32mg12_a_SOURCES                                             = \
@@ -136,11 +137,11 @@ libopenthread_efr32mg12_a_LIBADD                                                
     $(shell find $(top_builddir)/third_party/jlink/SEGGER_RTT_V640/RTT $(Dash)type f $(Dash)name "*.o")
 
 DIST_SUBDIRS                                                                  = \
-    efr32mg12/sleepy-demo                                                                 \
+    efr32mg12/sleepy-demo                                                       \
     $(NULL)
 
 SUBDIRS                                                                       = \
-    efr32mg12/sleepy-demo                                                                 \
+    efr32mg12/sleepy-demo                                                       \
     $(NULL)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

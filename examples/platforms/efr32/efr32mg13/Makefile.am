@@ -105,24 +105,25 @@ PLATFORM_COMMON_SOURCES                                                       = 
     src/flash.c                                                                 \
     src/logging.c                                                               \
     src/startup-gcc.c                                                           \
+    src/uart.c                                                                  \
     $(NULL)
 
 PLATFORM_SOURCES                                                              = \
-    entropy.c                                                                   \
-    misc.c                                                                      \
-    openthread-core-efr32-config.h                                              \
-    openthread-core-efr32-config-check.h                                        \
-    platform-efr32.h                                                            \
-    platform-band.h                                                             \
-    radio.c                                                                     \
-    rail_config.h                                                               \
-    system.c                                                                    \
-    uart.c                                                                      \
+    efr32mg13/entropy.c                                                         \
+    efr32mg13/misc.c                                                            \
+    efr32mg13/openthread-core-efr32-config.h                                    \
+    efr32mg13/openthread-core-efr32-config-check.h                              \
+    efr32mg13/platform-efr32.h                                                  \
+    efr32mg13/platform-band.h                                                   \
+    efr32mg13/radio.c                                                           \
+    efr32mg13/rail_config.h                                                     \
+    efr32mg13/system.c                                                          \
+    efr32mg13/uart-init.h                                                       \
     $(NULL)
 
 noinst_HEADERS                                                                = \
-    platform-efr32.h                                                            \
-    platform-band.h                                                             \
+    efr32mg13/platform-efr32.h                                                  \
+    efr32mg13/platform-band.h                                                   \
     $(NULL)
 
 libopenthread_efr32mg13_a_SOURCES                                             = \
@@ -136,11 +137,11 @@ libopenthread_efr32mg13_a_LIBADD                                                
     $(shell find $(top_builddir)/third_party/jlink/SEGGER_RTT_V640/RTT $(Dash)type f $(Dash)name "*.o")
 
 DIST_SUBDIRS                                                                  = \
-    efr32mg13/sleepy-demo                                                                 \
+    efr32mg13/sleepy-demo                                                       \
     $(NULL)
 
 SUBDIRS                                                                       = \
-    efr32mg13/sleepy-demo                                                                 \
+    efr32mg13/sleepy-demo                                                       \
     $(NULL)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
