@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, The OpenThread Authors.
+ *  Copyright (c) 2019, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 #include "em_cmu.h"
 #include "em_emu.h"
 #include "gpiointerrupt.h"
-#include "hal-config.h"
+#include "hal-config-board.h"
 #include "hal_common.h"
 #include "openthread-system.h"
 #include "platform-efr32.h"
@@ -49,6 +49,7 @@
 #include <openthread/tasklet.h>
 #include <openthread/thread.h>
 #include <openthread/udp.h>
+#include <openthread/platform/alarm-milli.h>
 #include <openthread/platform/logging.h>
 
 // Constants
@@ -56,7 +57,7 @@
 #define MULTICAST_PORT 123
 #define RECV_PORT 234
 #define SLEEPY_POLL_PERIOD_MS 5000
-#define MTD_MESSAGE "mtd button"
+#define MTD_MESSAGE "mtd is awake"
 #define FTD_MESSAGE "ftd button"
 
 // Types
@@ -67,6 +68,7 @@ typedef struct ButtonArray
 } ButtonArray_t;
 
 // Prototypes
+void deviceOutOfSleepCb(void);
 bool sleepCb(void);
 void setNetworkConfiguration(otInstance *aInstance);
 void handleNetifStateChanged(uint32_t aFlags, void *aContext);
@@ -112,7 +114,7 @@ int main(int argc, char *argv[])
     initUdp();
     otIp6SetEnabled(instance, true);
     otThreadSetEnabled(instance, true);
-    efr32SetSleepCallback(sleepCb);
+    efr32SetSleepCallback(sleepCb, deviceOutOfSleepCb);
 
     while (!otSysPseudoResetWasRequested())
     {
@@ -127,6 +129,22 @@ int main(int argc, char *argv[])
 
     otInstanceFinalize(instance);
     return 0;
+}
+
+void deviceOutOfSleepCb(void)
+{
+    static uint32_t udpPacketSendTimer = 0;
+
+    if (udpPacketSendTimer == 0)
+    {
+        udpPacketSendTimer = otPlatAlarmMilliGetNow();
+    }
+
+    if ((otPlatAlarmMilliGetNow() - udpPacketSendTimer) >= 5000)
+    {
+        sButtonPressed     = true;
+        udpPacketSendTimer = 0;
+    }
 }
 
 /*
