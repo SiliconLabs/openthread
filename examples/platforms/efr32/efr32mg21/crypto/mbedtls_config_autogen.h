@@ -59,6 +59,28 @@
 
 #include "config-device-acceleration.h"
 
+/*******************************************************************************
+
+CMAC hardware acceleration needs to be disabled to prevent the following error.
+
+```
+    In file included from /Users/matran/repos/github-silabs-openthread/examples/../src/core/crypto/pbkdf2_cmac.cpp:40:
+    /Users/matran/repos/github-silabs-openthread/examples/../third_party/silabs/gecko_sdk_suite/v2.7/util/third_party/mbedtls/include/mbedtls/cmac.h:223:1: error: expected '}' at end of input
+    223 | }
+        | ^
+    In file included from /Users/matran/repos/github-silabs-openthread/examples/../src/core/crypto/pbkdf2_cmac.cpp:40:
+    /Users/matran/repos/github-silabs-openthread/examples/../third_party/silabs/gecko_sdk_suite/v2.7/util/third_party/mbedtls/include/mbedtls/cmac.h:50:12: note: to match this '{'
+    50 | extern "C" {
+        |            ^
+    make[4]: *** [crypto/libopenthread_mtd_a-pbkdf2_cmac.o] Error 1
+```
+There is a bug in the GSDK mbedtls `cmac.h` file where the closing bracket for the `extern "C" {` statement is nested inside `#if !defined(MBEDTLS_CMAC_ALT)`.
+
+In other words, defining `MBEDTLS_CMAC_ALT` will cause the `extern "C" {` to never have it's scope closed, which causes the error above.
+
+NOTE: This workaround won't be needed once the switch to GSDK v3.0 has been made
+*******************************************************************************/
+#undef MBEDTLS_CMAC_ALT
 
 
 #include "sl_malloc.h"
