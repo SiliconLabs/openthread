@@ -107,7 +107,6 @@ void otSysInit(int argc, char *argv[])
     efr32RadioInit();
     efr32AlarmInit();
     efr32MiscInit();
-    efr32RandomInit();
 }
 
 bool otSysPseudoResetWasRequested(void)
