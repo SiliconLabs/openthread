@@ -104,6 +104,7 @@ libopenthread_efr32mg1_a_CPPFLAGS                                             = 
 PLATFORM_COMMON_SOURCES                                                       = \
     src/alarm.c                                                                 \
     src/diag.c                                                                  \
+    src/entropy.c                                                               \
     src/fem-control.c                                                           \
     src/flash.c                                                                 \
     src/logging.c                                                               \
@@ -116,7 +117,6 @@ PLATFORM_COMMON_SOURCES                                                       = 
     $(NULL)
 
 PLATFORM_SOURCES                                                              = \
-    efr32mg1/entropy.c                                                          \
     efr32mg1/platform-efr32.h                                                   \
     efr32mg1/platform-band.h                                                    \
     efr32mg1/radio.c                                                            \
