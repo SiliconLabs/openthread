@@ -288,11 +288,14 @@ private:
     void  StartRouterSolicitationDelay(void);
     Error SendRouterSolicitation(void);
     void  SendRouterAdvertisement(const OmrPrefixArray &aNewOmrPrefixes, const Ip6::Prefix *aNewOnLinkPrefix);
+    bool  IsRouterSolicitationInProgress(void) const;
 
     static void HandleRouterAdvertisementTimer(Timer &aTimer);
     void        HandleRouterAdvertisementTimer(void);
+#if OPENTHREAD_CONFIG_BORDER_ROUTING_VICARIOUS_RS_ENABLE
     static void HandleVicariousRouterSolicitTimer(Timer &aTimer);
     void        HandleVicariousRouterSolicitTimer(void);
+#endif
     static void HandleRouterSolicitTimer(Timer &aTimer);
     void        HandleRouterSolicitTimer(void);
     static void HandleDiscoveredPrefixInvalidTimer(Timer &aTimer);
@@ -306,12 +309,13 @@ private:
     void DeprecateOnLinkPrefix(void);
     void HandleRouterSolicit(const Ip6::Address &aSrcAddress, const uint8_t *aBuffer, uint16_t aBufferLength);
     void HandleRouterAdvertisement(const Ip6::Address &aSrcAddress, const uint8_t *aBuffer, uint16_t aBufferLength);
-    bool UpdateDiscoveredPrefixes(const RouterAdv::PrefixInfoOption &aPio);
-    bool UpdateDiscoveredPrefixes(const RouterAdv::RouteInfoOption &aRio);
-    bool InvalidateDiscoveredPrefixes(const Ip6::Prefix *aPrefix = nullptr, bool aIsOnLinkPrefix = true);
+    bool UpdateDiscoveredOnLinkPrefix(const RouterAdv::PrefixInfoOption &aPio);
+    void UpdateDiscoveredOmrPrefix(const RouterAdv::RouteInfoOption &aRio);
+    void InvalidateDiscoveredPrefixes(const Ip6::Prefix *aPrefix = nullptr, bool aIsOnLinkPrefix = true);
     void InvalidateAllDiscoveredPrefixes(void);
     bool NetworkDataContainsOmrPrefix(const Ip6::Prefix &aPrefix) const;
     bool UpdateRouterAdvMessage(const RouterAdv::RouterAdvMessage *aRouterAdvMessage);
+    void ResetDiscoveredPrefixStaleTimer(void);
 
     static bool IsValidOmrPrefix(const NetworkData::OnMeshPrefixConfig &aOnMeshPrefixConfig);
     static bool IsValidOmrPrefix(const Ip6::Prefix &aOmrPrefix);
@@ -367,6 +371,7 @@ private:
     // and updated with RA messages initiated from infra interface.
     RouterAdv::RouterAdvMessage mRouterAdvMessage;
     TimeMilli                   mTimeRouterAdvMessageLastUpdate;
+    bool                        mLearntRouterAdvMessageFromHost;
 
     TimerMilli mDiscoveredPrefixInvalidTimer;
     TimerMilli mDiscoveredPrefixStaleTimer;
@@ -374,8 +379,10 @@ private:
     TimerMilli mRouterAdvertisementTimer;
     uint32_t   mRouterAdvertisementCount;
 
+#if OPENTHREAD_CONFIG_BORDER_ROUTING_VICARIOUS_RS_ENABLE
     TimerMilli mVicariousRouterSolicitTimer;
     TimeMilli  mTimeVicariousRouterSolicitStart;
+#endif
     TimerMilli mRouterSolicitTimer;
     TimeMilli  mTimeRouterSolicitStart;
     uint8_t    mRouterSolicitCount;

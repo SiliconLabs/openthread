@@ -204,6 +204,16 @@ public:
      */
     static const char *LinkModeToString(const otLinkModeConfig &aLinkMode, char (&aStringBuffer)[kLinkModeStringSize]);
 
+    /**
+     * This method converts an IPv6 address origin `OT_ADDRESS_ORIGIN_*` value to human-readable string.
+     *
+     * @param[in] aOrigin   The IPv6 address origin to convert.
+     *
+     * @returns A human-readable string representation of @p aOrigin.
+     *
+     */
+    static const char *AddressOriginToString(uint8_t aOrigin);
+
 protected:
     static Interpreter *sInterpreter;
 
@@ -512,7 +522,9 @@ private:
     otError ProcessPskcRef(Arg aArgs[]);
 #endif
 #endif
+#if OPENTHREAD_CONFIG_MAC_FILTER_ENABLE && OPENTHREAD_CONFIG_RADIO_LINK_IEEE_802_15_4_ENABLE
     otError ProcessRadioFilter(Arg aArgs[]);
+#endif
     otError ProcessRcp(Arg aArgs[]);
     otError ProcessRegion(Arg aArgs[]);
 #if OPENTHREAD_FTD
@@ -819,7 +831,7 @@ private:
         {"pskcref", &Interpreter::ProcessPskcRef},
 #endif
 #endif
-#if OPENTHREAD_CONFIG_MAC_FILTER_ENABLE
+#if OPENTHREAD_CONFIG_MAC_FILTER_ENABLE && OPENTHREAD_CONFIG_RADIO_LINK_IEEE_802_15_4_ENABLE
         {"radiofilter", &Interpreter::ProcessRadioFilter},
 #endif
         {"rcp", &Interpreter::ProcessRcp},
