@@ -48,7 +48,6 @@ set(COMMON_SOURCES
     api/diags_api.cpp
     api/dns_api.cpp
     api/dns_server_api.cpp
-    api/entropy_api.cpp
     api/error_api.cpp
     api/heap_api.cpp
     api/history_tracker_api.cpp
@@ -79,6 +78,7 @@ set(COMMON_SOURCES
     api/tcp_api.cpp
     api/thread_api.cpp
     api/thread_ftd_api.cpp
+    api/trel_api.cpp
     api/udp_api.cpp
     backbone_router/backbone_tmf.cpp
     backbone_router/bbr_leader.cpp
@@ -101,7 +101,7 @@ set(COMMON_SOURCES
     common/heap_data.cpp
     common/heap_string.cpp
     common/instance.cpp
-    common/logging.cpp
+    common/log.cpp
     common/message.cpp
     common/notifier.cpp
     common/random_manager.cpp
@@ -246,7 +246,7 @@ set(RADIO_COMMON_SOURCES
     common/binary_search.cpp
     common/error.cpp
     common/instance.cpp
-    common/logging.cpp
+    common/log.cpp
     common/random_manager.cpp
     common/string.cpp
     common/tasklet.cpp

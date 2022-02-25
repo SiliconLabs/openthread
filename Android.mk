@@ -35,17 +35,25 @@ OPENTHREAD_SOURCE_VERSION := $(shell git -C $(LOCAL_PATH) describe --always --ma
 
 OPENTHREAD_PROJECT_CFLAGS                                                 ?= \
     -DOPENTHREAD_PROJECT_CORE_CONFIG_FILE=\"openthread-core-posix-config.h\" \
-    -DOPENTHREAD_CONFIG_FILE=\<openthread-config-android.h\>                 \
     $(NULL)
 
 OPENTHREAD_PUBLIC_CFLAGS                                         := \
-    -DOPENTHREAD_CONFIG_PING_SENDER_ENABLE=1                        \
+    -DOPENTHREAD_CONFIG_BORDER_AGENT_ENABLE=1                       \
+    -DOPENTHREAD_CONFIG_BORDER_ROUTER_ENABLE=1                      \
+    -DOPENTHREAD_CONFIG_CHILD_SUPERVISION_ENABLE=1                  \
     -DOPENTHREAD_CONFIG_COMMISSIONER_ENABLE=1                       \
+    -DOPENTHREAD_CONFIG_DTLS_ENABLE=1                               \
     -DOPENTHREAD_CONFIG_IP6_SLAAC_ENABLE=1                          \
+    -DOPENTHREAD_CONFIG_JAM_DETECTION_ENABLE=1                      \
+    -DOPENTHREAD_CONFIG_JOINER_ENABLE=1                             \
     -DOPENTHREAD_CONFIG_LOG_LEVEL_DYNAMIC_ENABLE=1                  \
     -DOPENTHREAD_CONFIG_MAC_FILTER_ENABLE=1                         \
-    -DOPENTHREAD_POSIX_CONFIG_RCP_PTY_ENABLE=1                      \
+    -DOPENTHREAD_CONFIG_NCP_HDLC_ENABLE=1                           \
+    -DOPENTHREAD_CONFIG_PING_SENDER_ENABLE=1                        \
+    -DOPENTHREAD_CONFIG_TMF_NETDATA_SERVICE_ENABLE=1                \
     -DOPENTHREAD_FTD=1                                              \
+    -DOPENTHREAD_PLATFORM_POSIX=1                                   \
+    -DOPENTHREAD_POSIX_CONFIG_RCP_PTY_ENABLE=1                      \
     -DOPENTHREAD_SPINEL_CONFIG_OPENTHREAD_MESSAGE_ENABLE=1          \
     $(NULL)
 
@@ -73,7 +81,6 @@ ifeq ($(USE_OTBR_DAEMON), 1)
 OPENTHREAD_PUBLIC_CFLAGS                                         += \
     -DOPENTHREAD_CONFIG_PLATFORM_NETIF_ENABLE=1                     \
     -DOPENTHREAD_CONFIG_PLATFORM_UDP_ENABLE=1                       \
-    -DOPENTHREAD_CONFIG_UNSECURE_TRAFFIC_MANAGED_BY_STACK_ENABLE=1  \
     -DOPENTHREAD_POSIX_CONFIG_DAEMON_ENABLE=1                       \
     $(NULL)
 else
@@ -154,6 +161,7 @@ LOCAL_SHARED_LIBRARIES := libcutils
 
 LOCAL_CFLAGS                                             += \
     -DOPENTHREAD_ENABLE_ANDROID_NDK=1                       \
+    -Wno-sign-compare                                       \
     $(NULL)
 endif
 
@@ -175,7 +183,6 @@ LOCAL_SRC_FILES                                                  := \
     src/core/api/diags_api.cpp                                      \
     src/core/api/dns_api.cpp                                        \
     src/core/api/dns_server_api.cpp                                 \
-    src/core/api/entropy_api.cpp                                    \
     src/core/api/error_api.cpp                                      \
     src/core/api/heap_api.cpp                                       \
     src/core/api/history_tracker_api.cpp                            \
@@ -206,6 +213,7 @@ LOCAL_SRC_FILES                                                  := \
     src/core/api/tcp_api.cpp                                        \
     src/core/api/thread_api.cpp                                     \
     src/core/api/thread_ftd_api.cpp                                 \
+    src/core/api/trel_api.cpp                                       \
     src/core/api/udp_api.cpp                                        \
     src/core/backbone_router/backbone_tmf.cpp                       \
     src/core/backbone_router/bbr_leader.cpp                         \
@@ -228,7 +236,7 @@ LOCAL_SRC_FILES                                                  := \
     src/core/common/heap_data.cpp                                   \
     src/core/common/heap_string.cpp                                 \
     src/core/common/instance.cpp                                    \
-    src/core/common/logging.cpp                                     \
+    src/core/common/log.cpp                                         \
     src/core/common/message.cpp                                     \
     src/core/common/notifier.cpp                                    \
     src/core/common/random_manager.cpp                              \
@@ -384,7 +392,7 @@ LOCAL_SRC_FILES                                                  := \
     src/posix/platform/settings.cpp                                 \
     src/posix/platform/spi_interface.cpp                            \
     src/posix/platform/system.cpp                                   \
-    src/posix/platform/trel_udp6.cpp                                \
+    src/posix/platform/trel.cpp                                     \
     src/posix/platform/udp.cpp                                      \
     src/posix/platform/utils.cpp                                    \
     third_party/mbedtls/repo/library/aes.c                          \
@@ -473,6 +481,18 @@ LOCAL_SRC_FILES                                                  := \
     third_party/mbedtls/repo/library/x509write_crt.c                \
     third_party/mbedtls/repo/library/x509write_csr.c                \
     third_party/mbedtls/repo/library/xtea.c                         \
+    third_party/tcplp/bsdtcp/tcp_usrreq.c                           \
+    third_party/tcplp/bsdtcp/tcp_subr.c                             \
+    third_party/tcplp/bsdtcp/tcp_output.c                           \
+    third_party/tcplp/bsdtcp/cc/cc_newreno.c                        \
+    third_party/tcplp/bsdtcp/tcp_reass.c                            \
+    third_party/tcplp/bsdtcp/tcp_timewait.c                         \
+    third_party/tcplp/bsdtcp/tcp_sack.c                             \
+    third_party/tcplp/bsdtcp/tcp_input.c                            \
+    third_party/tcplp/bsdtcp/tcp_timer.c                            \
+    third_party/tcplp/lib/bitmap.c                                  \
+    third_party/tcplp/lib/cbuf.c                                    \
+    third_party/tcplp/lib/lbuf.c                                    \
     $(OPENTHREAD_PROJECT_SRC_FILES)                                 \
     $(NULL)
 

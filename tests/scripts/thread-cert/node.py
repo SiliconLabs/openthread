@@ -125,6 +125,8 @@ class OtbrDocker:
             config.OTBR_DOCKER_IMAGE,
             '-B',
             config.BACKBONE_IFNAME,
+            '--trel-url',
+            f'trel://{config.BACKBONE_IFNAME}',
         ],
                                              stdin=subprocess.DEVNULL,
                                              stdout=sys.stdout,
@@ -676,7 +678,7 @@ class NodeImpl:
         return lines
 
     def __is_logging_line(self, line: str) -> bool:
-        return len(line) >= 6 and line[:6] in {'[DEBG]', '[INFO]', '[NOTE]', '[WARN]', '[CRIT]', '[NONE]'}
+        return len(line) >= 3 and line[:3] in {'[D]', '[I]', '[N]', '[W]', '[C]', '[-]'}
 
     def read_cert_messages_in_commissioning_log(self, timeout=-1):
         """Get the log of the traffic after DTLS handshake.
@@ -1144,6 +1146,21 @@ class NodeImpl:
         cmd = 'srp client leaseinterval'
         self.send_command(cmd)
         return int(self._expect_result('\d+'))
+
+    #
+    # TREL utilities
+    #
+
+    def get_trel_state(self) -> Union[None, bool]:
+        states = [r'Disabled', r'Enabled']
+        self.send_command('trel')
+        try:
+            return self._expect_result(states) == 'Enabled'
+        except Exception as ex:
+            if 'InvalidCommand' in str(ex):
+                return None
+
+            raise
 
     def _encode_txt_entry(self, entry):
         """Encodes the TXT entry to the DNS-SD TXT record format as a HEX string.
@@ -1880,15 +1897,40 @@ class NodeImpl:
         self.send_command('br disable')
         self._expect_done()
 
-    def get_omr_prefix(self):
+    def get_br_omr_prefix(self):
         cmd = 'br omrprefix'
         self.send_command(cmd)
         return self._expect_command_output()[0]
 
-    def get_on_link_prefix(self):
+    def get_netdata_omr_prefixes(self):
+        prefixes = [prefix.split(' ')[0] for prefix in self.get_prefixes()]
+        return prefixes
+
+    def get_br_on_link_prefix(self):
         cmd = 'br onlinkprefix'
         self.send_command(cmd)
         return self._expect_command_output()[0]
+
+    def get_netdata_non_nat64_prefixes(self):
+        prefixes = []
+        routes = self.get_routes()
+        for route in routes:
+            if 'n' not in route.split(' ')[1]:
+                prefixes.append(route.split(' ')[0])
+        return prefixes
+
+    def get_br_nat64_prefix(self):
+        cmd = 'br nat64prefix'
+        self.send_command(cmd)
+        return self._expect_command_output()[0]
+
+    def get_netdata_nat64_prefix(self):
+        prefixes = []
+        routes = self.get_routes()
+        for route in routes:
+            if 'n' in route.split(' ')[1]:
+                prefixes.append(route.split(' ')[0])
+        return prefixes
 
     def get_prefixes(self):
         return self.get_netdata()['Prefixes']
@@ -1927,10 +1969,12 @@ class NodeImpl:
 
         return netdata
 
-    def add_route(self, prefix, stable=False, prf='med'):
+    def add_route(self, prefix, stable=False, nat64=False, prf='med'):
         cmd = 'route add %s ' % prefix
         if stable:
             cmd += 's'
+        if nat64:
+            cmd += 'n'
         cmd += ' %s' % prf
         self.send_command(cmd)
         self._expect_done()

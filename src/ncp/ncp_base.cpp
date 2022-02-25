@@ -261,9 +261,6 @@ NcpBase::NcpBase(Instance *aInstance)
     , mRxSpinelOutOfOrderTidCounter(0)
     , mTxSpinelFrameCounter(0)
     , mDidInitialUpdates(false)
-#if OPENTHREAD_CONFIG_RADIO_LINK_TREL_ENABLE
-    , mTrelTestModeEnable(true)
-#endif
     , mLogTimestampBase(0)
 {
     OT_ASSERT(mInstance != nullptr);
@@ -2631,16 +2628,6 @@ extern "C" void otPlatLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const ch
     }
 
     va_end(args);
-}
-
-extern "C" void otPlatLogLine(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aLogLine)
-{
-    ot::Ncp::NcpBase *ncp = ot::Ncp::NcpBase::GetNcpInstance();
-
-    if (ncp != nullptr)
-    {
-        ncp->Log(aLogLevel, aLogRegion, aLogLine);
-    }
 }
 
 #endif // (OPENTHREAD_CONFIG_LOG_OUTPUT == OPENTHREAD_CONFIG_LOG_OUTPUT_APP)

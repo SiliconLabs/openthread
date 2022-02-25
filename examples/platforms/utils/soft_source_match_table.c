@@ -39,8 +39,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "common/logging.hpp"
-#include "common/debug.hpp"
+#include <openthread/logging.h>
+
 #include "utils/code_utils.h"
 
 // Print entire source match tables when
