@@ -995,7 +995,7 @@ exit:
 
 // LCOV_EXCL_START
 
-#if OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_NOTE
+#if OT_SHOULD_LOG_AT(OT_LOG_LEVEL_NOTE)
 
 void AddressResolver::LogCacheEntryChange(EntryChange       aChange,
                                           Reason            aReason,
@@ -1032,7 +1032,7 @@ void AddressResolver::LogCacheEntryChange(EntryChange       aChange,
     static_assert(6 == kReasonEvictingForNewEntry, "kReasonEvictingForNewEntry value is incorrect");
     static_assert(7 == kReasonRemovingEid, "kReasonRemovingEid value is incorrect");
 
-    LogNote("Cache entry %s: %s, 0x%04x%s%s - %s", kChangeStrings[aChange], aEntry.GetTarget().ToString().AsCString(),
+    LogInfo("Cache entry %s: %s, 0x%04x%s%s - %s", kChangeStrings[aChange], aEntry.GetTarget().ToString().AsCString(),
             aEntry.GetRloc16(), (aList == nullptr) ? "" : ", list:", ListToString(aList), kReasonStrings[aReason]);
 }
 
@@ -1049,13 +1049,13 @@ exit:
     return str;
 }
 
-#else // #if OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_NOTE
+#else // #if OT_SHOULD_LOG_AT(OT_LOG_LEVEL_NOTE)
 
 void AddressResolver::LogCacheEntryChange(EntryChange, Reason, const CacheEntry &, CacheEntryList *)
 {
 }
 
-#endif // #if OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_NOTE
+#endif // #if OT_SHOULD_LOG_AT(OT_LOG_LEVEL_NOTE)
 
 // LCOV_EXCL_STOP
 

@@ -40,7 +40,6 @@
 #include "common/encoding.hpp"
 #include "common/instance.hpp"
 #include "common/locator_getters.hpp"
-#include "common/log.hpp"
 #include "common/random.hpp"
 #include "common/serial_number.hpp"
 #include "common/settings.hpp"
@@ -1323,7 +1322,7 @@ Error MleRouter::HandleAdvertisement(const Message &aMessage, const Ip6::Message
             if (mParent.GetRloc16() != sourceAddress)
             {
                 IgnoreError(BecomeDetached());
-                ExitNow(error = kErrorNoRoute);
+                ExitNow(error = kErrorDetached);
             }
 
             if (IsFullThreadDevice())
@@ -1552,7 +1551,7 @@ void MleRouter::UpdateRoutes(const RouteTlv &aRoute, uint8_t aRouterId)
         ResetAdvertiseInterval();
     }
 
-#if OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_INFO
+#if OT_SHOULD_LOG_AT(OT_LOG_LEVEL_INFO)
 
     VerifyOrExit(changed);
     LogInfo("Route table updated");
@@ -3167,9 +3166,9 @@ Error MleRouter::SendChildUpdateRequest(Child &aChild)
     {
         uint16_t childIndex = Get<ChildTable>().GetChildIndex(aChild);
 
-        for (message = Get<MeshForwarder>().GetSendQueue().GetHead(); message; message = message->GetNext())
+        for (const Message &msg : Get<MeshForwarder>().GetSendQueue())
         {
-            if (message->GetChildMask(childIndex) && message->GetSubType() == Message::kSubTypeMleChildUpdateRequest)
+            if (msg.GetChildMask(childIndex) && msg.GetSubType() == Message::kSubTypeMleChildUpdateRequest)
             {
                 // No need to send the resync "Child Update Request" to the sleepy child
                 // if there is one already queued.

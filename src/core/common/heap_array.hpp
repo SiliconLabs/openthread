@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, The OpenThread Authors.
+ *  Copyright (c) 2022, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -28,175 +28,155 @@
 
 /**
  * @file
- *   This file includes definitions for a generic array.
+ *   This file includes definitions for `Heap::Array` (a heap allocated array of flexible length).
  */
 
-#ifndef ARRAY_HPP_
-#define ARRAY_HPP_
+#ifndef HEAP_ARRAY_HPP_
+#define HEAP_ARRAY_HPP_
 
 #include "openthread-core-config.h"
 
+#include <stdint.h>
+#include <stdio.h>
+
+#include "common/array.hpp"
 #include "common/code_utils.hpp"
-#include "common/const_cast.hpp"
 #include "common/error.hpp"
-#include "common/numeric_limits.hpp"
-#include "common/type_traits.hpp"
+#include "common/heap.hpp"
+#include "common/new.hpp"
 
 namespace ot {
+namespace Heap {
 
 /**
- * This function returns the length of a given array (number of elements in the array).
+ * This class represents a heap allocated array.
  *
- * This template function is `constexpr`. The template arguments are expected to be deduced by the compiler allowing
- * callers to simply use `GetArrayLength(aArray)`.
+ * The buffer to store the elements is allocated from heap and is managed by the `Heap::Array` class itself. The `Array`
+ * implementation will automatically grow the buffer when new entries are added. The `Heap::Array` destructor will
+ * always free the allocated buffer.
  *
- * @tparam  Type          The array element type.
- * @tparam  kArrayLength  The array length.
+ * The `Type` class MUST provide a move constructor `Type(Type &&aOther)` (or a copy constructor if no move constructor
+ * is provided). This constructor is used to move existing elements when array buffer is grown (new buffer is
+ * allocated) to make room for new elements.
  *
- * @returns The array length (number of elements in the array).
- *
- */
-template <typename Type, uint16_t kArrayLength> constexpr inline uint16_t GetArrayLength(const Type (&)[kArrayLength])
-{
-    return kArrayLength;
-}
-
-/**
- * This function returns a pointer to end of a given array (pointing to the past-the-end element).
- *
- * Note that the past-the-end element is a theoretical element that would follow the last element in the array. It does
- * not point to an actual element in array, and thus should not be dereferenced.
- *
- * @tparam  Type          The array element type.
- * @tparam  kArrayLength  The array length.
- *
- * @param[in] aArray   A reference to the array.
- *
- * @returns Pointer to the past-the-end element.
+ * @tparam  Type                  The array element type.
+ * @tparam  kCapacityIncrements   Number of elements to allocate at a time when updating the array buffer.
  *
  */
-template <typename Type, uint16_t kArrayLength> inline Type *GetArrayEnd(Type (&aArray)[kArrayLength])
+template <typename Type, uint16_t kCapacityIncrements = 2> class Array
 {
-    return &aArray[kArrayLength];
-}
-
-/**
- * This function returns a pointer to end of a given array (pointing to the past-the-end element).
- *
- * Note that the past-the-end element is a theoretical element that would follow the last element in the array. It does
- * not point to an actual element in array, and thus should not be dereferenced.
- *
- * @tparam  Type          The array element type.
- * @tparam  kArrayLength  The array length.
- *
- * @param[in] aArray   A reference to the array.
- *
- * @returns Pointer to the past-the-end element.
- *
- */
-template <typename Type, uint16_t kArrayLength> inline const Type *GetArrayEnd(const Type (&aArray)[kArrayLength])
-{
-    return &aArray[kArrayLength];
-}
-
-/**
- * This template class represents an array of elements with a fixed max size.
- *
- * @tparam Type        The array element type.
- * @tparam kMaxSize    Specifies the max array size (maximum number of elements in the array).
- * @tparam SizeType    The type to be used for array size, length, and index. If not specified, a default `uint` type
- *                     is determined based on `kMaxSize`, i.e., if `kMaxSize <= 255` then `uint8_t` will be used,
- *                     otherwise `uint16_t` will be used.
- *
- */
-template <typename Type,
-          uint16_t kMaxSize,
-          typename SizeType =
-              typename TypeTraits::Conditional<kMaxSize <= NumericLimits<uint8_t>::kMax, uint8_t, uint16_t>::Type>
-class Array
-{
-    static_assert(kMaxSize != 0, "Array `kMaxSize` cannot be zero");
-
 public:
-    /**
-     * This type represents the length or index in array.
-     *
-     * It is typically either `uint8_t` or `uint16_t` (determined based on the maximum array size (`kMaxSize`)).
-     *
-     */
-    typedef SizeType IndexType;
+    using IndexType = uint16_t;
 
     /**
-     * This constructor initializes the array as empty.
+     * This constructor initializes the `Array` as empty.
      *
      */
     Array(void)
-        : mLength(0)
+        : mArray(nullptr)
+        , mLength(0)
+        , mCapacity(0)
     {
     }
 
     /**
-     * This constructor initializes the array by copying elements from another array.
-     *
-     * The method uses assignment `=` operator on `Type` to copy each element from @p aOtherArray into the elements of
-     * the array.
-     *
-     * @param[in] aOtherArray  Another array to copy from.
+     * This is the destructor for `Array` object.
      *
      */
-    Array(const Array &aOtherArray) { *this = aOtherArray; }
+    ~Array(void) { Free(); }
+
+    /**
+     * This method frees any buffer allocated by the `Array`.
+     *
+     * The `Array` destructor will automatically call `Free()`. This method allows caller to free buffer explicitly.
+     *
+     */
+    void Free(void)
+    {
+        Clear();
+        Heap::Free(mArray);
+        mArray    = nullptr;
+        mCapacity = 0;
+    }
 
     /**
      * This method clears the array.
      *
-     */
-    void Clear(void) { mLength = 0; }
-
-    /**
-     * This method indicates whether or not the array is empty.
+     * Note that `Clear()` method (unlike `Free()`) does not free the allocated buffer and therefore does not change
+     * the current capacity of the array.
      *
-     * @retval TRUE when array is empty.
-     * @retval FALSE when array is not empty.
+     * This method invokes `Type` destructor on all cleared existing elements of array.
      *
      */
-    bool IsEmpty(void) const { return (mLength == 0); }
+    void Clear(void)
+    {
+        for (Type &entry : *this)
+        {
+            entry.~Type();
+        }
+
+        mLength = 0;
+    }
 
     /**
-     * This method indicates whether or not the array is full.
+     * This method returns the current array length (number of elements in the array).
      *
-     * @retval TRUE when array is full.
-     * @retval FALSE when array is not full.
-     *
-     */
-    bool IsFull(void) const { return (mLength == GetMaxSize()); }
-
-    /**
-     * This method returns the maximum array size (max number of elements).
-     *
-     * @returns The maximum array size (max number of elements that can be added to the array).
-     *
-     */
-    IndexType GetMaxSize(void) const { return static_cast<IndexType>(kMaxSize); }
-
-    /**
-     * This method returns the current length of array (number of elements).
-     *
-     * @returns The current array length.
+     * @returns The array length.
      *
      */
     IndexType GetLength(void) const { return mLength; }
 
     /**
-     * This method overloads the `[]` operator to get the element at a given index.
+     * This method returns a raw pointer to the array buffer.
      *
-     * This method does not perform index bounds checking. Behavior is undefined if @p aIndex is not valid.
+     * The returned raw pointer is valid only while the `Array` remains unchanged.
      *
-     * @param[in] aIndex  The index to get.
-     *
-     * @returns A reference to the element in array at @p aIndex.
+     * @returns A pointer to the array buffer or `nullptr` if the array is empty.
      *
      */
-    Type &operator[](IndexType aIndex) { return mElements[aIndex]; }
+    const Type *AsCArray(void) const { return (mLength != 0) ? mArray : nullptr; }
+
+    /**
+     * This method returns the current capacity of array (number of elements that can fit in current allocated buffer).
+     *
+     * The allocated buffer and array capacity are automatically increased (by the `Array` itself) when new elements
+     * are added to array. Removing elements does not change the buffer and the capacity. A desired capacity can be
+     * reserved using `ReserveCapacity()` method.
+     *
+     * @returns The current capacity of the array.
+     *
+     */
+    IndexType GetCapacity(void) const { return mCapacity; }
+
+    /**
+     * This method allocates buffer to reserve a given capacity for array.
+     *
+     * If the requested @p aCapacity is smaller than the current length of the array, capacity remains unchanged.
+     *
+     * @param[in] aCapacity   The target capacity for the array.
+     *
+     * @retval kErrorNone     Array was successfully updated to support @p aCapacity.
+     * @retval kErrorNoBufs   Could not allocate buffer.
+     *
+     */
+    Error ReserveCapacity(IndexType aCapacity) { return Allocate(aCapacity); }
+
+    /**
+     * This method sets the array by taking the buffer from another given array (using move semantics).
+     *
+     * @param[in] aOther    The other `Heap::Array` to take from (rvalue reference).
+     *
+     */
+    void TakeFrom(Array &&aOther)
+    {
+        Free();
+        mArray           = aOther.mArray;
+        mLength          = aOther.mLength;
+        mCapacity        = aOther.mCapacity;
+        aOther.mArray    = nullptr;
+        aOther.mLength   = 0;
+        aOther.mCapacity = 0;
+    }
 
     /**
      * This method overloads the `[]` operator to get the element at a given index.
@@ -208,34 +188,50 @@ public:
      * @returns A reference to the element in array at @p aIndex.
      *
      */
-    const Type &operator[](IndexType aIndex) const { return mElements[aIndex]; }
+    Type &operator[](IndexType aIndex) { return mArray[aIndex]; }
+
+    /**
+     * This method overloads the `[]` operator to get the element at a given index.
+     *
+     * This method does not perform index bounds checking. Behavior is undefined if @p aIndex is not valid.
+     *
+     * @param[in] aIndex  The index to get.
+     *
+     * @returns A reference to the element in array at @p aIndex.
+     *
+     */
+    const Type &operator[](IndexType aIndex) const { return mArray[aIndex]; }
 
     /**
      * This method gets a pointer to the element at a given index.
      *
-     * Unlike `operator[]`, this method checks @p aIndex to be valid and within the current length.
+     * Unlike `operator[]`, this method checks @p aIndex to be valid and within the current length. The returned
+     * pointer is valid only while the `Array` remains unchanged.
      *
      * @param[in] aIndex  The index to get.
      *
      * @returns A pointer to element in array at @p aIndex or `nullptr` if @p aIndex is not valid.
      *
      */
-    Type *At(IndexType aIndex) { return (aIndex < mLength) ? &mElements[aIndex] : nullptr; }
+    Type *At(IndexType aIndex) { return (aIndex < mLength) ? &mArray[aIndex] : nullptr; }
 
     /**
      * This method gets a pointer to the element at a given index.
      *
-     * Unlike `operator[]`, this method checks @p aIndex to be valid and within the current length.
+     * Unlike `operator[]`, this method checks @p aIndex to be valid and within the current length. The returned
+     * pointer is valid only while the `Array` remains unchanged.
      *
      * @param[in] aIndex  The index to get.
      *
      * @returns A pointer to element in array at @p aIndex or `nullptr` if @p aIndex is not valid.
      *
      */
-    const Type *At(IndexType aIndex) const { return (aIndex < mLength) ? &mElements[aIndex] : nullptr; }
+    const Type *At(IndexType aIndex) const { return (aIndex < mLength) ? &mArray[aIndex] : nullptr; }
 
     /**
      * This method gets a pointer to the element at the front of the array (first element).
+     *
+     * The returned pointer is valid only while the `Array` remains unchanged.
      *
      * @returns A pointer to the front element or `nullptr` if array is empty.
      *
@@ -245,6 +241,8 @@ public:
     /**
      * This method gets a pointer to the element at the front of the array (first element).
      *
+     * The returned pointer is valid only while the `Array` remains unchanged.
+     *
      * @returns A pointer to the front element or `nullptr` if array is empty.
      *
      */
@@ -253,50 +251,118 @@ public:
     /**
      * This method gets a pointer to the element at the back of the array (last element).
      *
+     * The returned pointer is valid only while the `Array` remains unchanged.
+     *
      * @returns A pointer to the back element or `nullptr` if array is empty.
      *
      */
-    Type *Back(void) { return At(mLength - 1); }
+    Type *Back(void) { return (mLength > 0) ? &mArray[mLength - 1] : nullptr; }
 
     /**
      * This method gets a pointer to the element at the back of the array (last element).
      *
+     * The returned pointer is valid only while the `Array` remains unchanged.
+     *
      * @returns A pointer to the back element or `nullptr` if array is empty.
      *
      */
-    const Type *Back(void) const { return At(mLength - 1); }
+    const Type *Back(void) const { return (mLength > 0) ? &mArray[mLength - 1] : nullptr; }
 
     /**
      * This method appends a new entry to the end of the array.
      *
-     * The method uses assignment `=` operator on `Type` to copy @p aEntry into the added array element.
+     * This method requires the `Type` to provide a copy constructor of format `Type(const Type &aOther)` to init the
+     * new element in the array from @p aEntry.
      *
      * @param[in] aEntry     The new entry to push back.
      *
      * @retval kErrorNone    Successfully pushed back @p aEntry to the end of the array.
-     * @retval kErrorNoBufs  Could not append the new element since array is full.
+     * @retval kErrorNoBufs  Could not allocate buffer to grow the array.
      *
      */
-    Error PushBack(const Type &aEntry) { return IsFull() ? kErrorNoBufs : (mElements[mLength++] = aEntry, kErrorNone); }
+    Error PushBack(const Type &aEntry)
+    {
+        Error error = kErrorNone;
+
+        if (mLength == mCapacity)
+        {
+            SuccessOrExit(error = Allocate(mCapacity + kCapacityIncrements));
+        }
+
+        new (&mArray[mLength++]) Type(aEntry);
+
+    exit:
+        return error;
+    }
+
+    /**
+     * This method appends a new entry to the end of the array.
+     *
+     * This method requires the `Type` to provide a copy constructor of format `Type(Type &&aOther)` to init the
+     * new element in the array from @p aEntry.
+     *
+     * @param[in] aEntry     The new entry to push back (an rvalue reference)
+     *
+     * @retval kErrorNone    Successfully pushed back @p aEntry to the end of the array.
+     * @retval kErrorNoBufs  Could not allocate buffer to grow the array.
+     *
+     */
+    Error PushBack(Type &&aEntry)
+    {
+        Error error = kErrorNone;
+
+        if (mLength == mCapacity)
+        {
+            SuccessOrExit(error = Allocate(mCapacity + kCapacityIncrements));
+        }
+
+        new (&mArray[mLength++]) Type(static_cast<Type &&>(aEntry));
+
+    exit:
+        return error;
+    }
 
     /**
      * This method appends a new entry to the end of the array.
      *
      * On success, this method returns a pointer to the newly appended element in the array for the caller to
-     * initialize and use.
+     * initialize and use. This method uses the `Type(void)` default constructor on the newly appended element (if not
+     * `nullptr`).
      *
-     * @return A pointer to the newly appended element or `nullptr` if array is full.
+     * The returned pointer is valid only while the `Array` remains unchanged.
+     *
+     * @return A pointer to the newly appended element or `nullptr` if could not allocate buffer to grow the array
      *
      */
-    Type *PushBack(void) { return IsFull() ? nullptr : &mElements[mLength++]; }
+    Type *PushBack(void)
+    {
+        Type *newEntry = nullptr;
+
+        if (mLength == mCapacity)
+        {
+            SuccessOrExit(Allocate(mCapacity + kCapacityIncrements));
+        }
+
+        newEntry = new (&mArray[mLength++]) Type();
+
+    exit:
+        return newEntry;
+    }
 
     /**
      * This method removes the last element in the array.
      *
-     * @returns A pointer to the removed element from the array, or `nullptr` if array is empty.
+     * This method will invoke the `Type` destructor on the removed element.
      *
      */
-    Type *PopBack(void) { return IsEmpty() ? nullptr : &mElements[--mLength]; }
+    void PopBack(void)
+    {
+        if (mLength > 0)
+        {
+            mArray[mLength - 1].~Type();
+            mLength--;
+        }
+    }
 
     /**
      * This method returns the index of an element in the array.
@@ -308,12 +374,13 @@ public:
      * @returns The index of @p aElement in the array.
      *
      */
-    IndexType IndexOf(const Type &aElement) const { return static_cast<IndexType>(&aElement - &mElements[0]); }
+    IndexType IndexOf(const Type &aElement) const { return static_cast<IndexType>(&aElement - mArray); }
 
     /**
      * This method finds the first match of a given entry in the array.
      *
-     * This method uses `==` operator on `Type` to compare the array element with @p aEntry.
+     * This method uses `==` operator on `Type` to compare the array element with @p aEntry. The returned pointer is
+     * valid only while the `Array` remains unchanged.
      *
      * @param[in] aEntry   The entry to search for within the array.
      *
@@ -325,7 +392,8 @@ public:
     /**
      * This method finds the first match of a given entry in the array.
      *
-     * This method uses `==` operator to compare the array elements with @p aEntry.
+     * This method uses `==` operator to compare the array elements with @p aEntry. The returned pointer is valid only
+     * while the `Array` remains unchanged.
      *
      * @param[in] aEntry   The entry to search for within the array.
      *
@@ -370,6 +438,8 @@ public:
      *
      *     bool Type::Matches(const Indicator &aIndicator) const
      *
+     * The returned pointer is valid only while the `Array` remains unchanged.
+     *
      * @param[in]  aIndicator  An indicator to match with elements in the array.
      *
      * @returns A pointer to the matched array element, or `nullptr` if a match could not be found.
@@ -388,6 +458,8 @@ public:
      * `Type` element in the array. The `Matches()` method should be provided by `Type` class accordingly:
      *
      *     bool Type::Matches(const Indicator &aIndicator) const
+     *
+     * The returned pointer is valid only while the `Array` remains unchanged.
      *
      * @param[in]  aIndicator  An indicator to match with elements in the array.
      *
@@ -430,41 +502,48 @@ public:
         return FindMatching(aIndicator) != nullptr;
     }
 
-    /**
-     * This method overloads assignment `=` operator to copy elements from another array into the array.
-     *
-     * The method uses assignment `=` operator on `Type` to copy each element from @p aOtherArray into the elements of
-     * the array.
-     *
-     * @param[in] aOtherArray  Another array to copy from.
-     *
-     */
-    Array &operator=(const Array &aOtherArray)
-    {
-        Clear();
-
-        for (const Type &otherElement : aOtherArray)
-        {
-            IgnoreError(PushBack(otherElement));
-        }
-
-        return *this;
-    }
-
     // The following methods are intended to support range-based `for`
     // loop iteration over the array elements and should not be used
     // directly.
 
-    Type *      begin(void) { return &mElements[0]; }
-    Type *      end(void) { return &mElements[mLength]; }
-    const Type *begin(void) const { return &mElements[0]; }
-    const Type *end(void) const { return &mElements[mLength]; }
+    Type *      begin(void) { return (mLength > 0) ? mArray : nullptr; }
+    Type *      end(void) { return (mLength > 0) ? &mArray[mLength] : nullptr; }
+    const Type *begin(void) const { return (mLength > 0) ? mArray : nullptr; }
+    const Type *end(void) const { return (mLength > 0) ? &mArray[mLength] : nullptr; }
+
+    Array(const Array &) = delete;
+    Array &operator=(const Array &) = delete;
 
 private:
-    Type      mElements[kMaxSize];
+    Error Allocate(IndexType aCapacity)
+    {
+        Error error = kErrorNone;
+        Type *newArray;
+
+        VerifyOrExit((aCapacity != mCapacity) && (aCapacity >= mLength));
+        newArray = static_cast<Type *>(Heap::CAlloc(aCapacity, sizeof(Type)));
+        VerifyOrExit(newArray != nullptr, error = kErrorNoBufs);
+
+        for (IndexType index = 0; index < mLength; index++)
+        {
+            new (&newArray[index]) Type(static_cast<Type &&>(mArray[index]));
+            mArray[index].~Type();
+        }
+
+        Heap::Free(mArray);
+        mArray    = newArray;
+        mCapacity = aCapacity;
+
+    exit:
+        return error;
+    }
+
+    Type *    mArray;
     IndexType mLength;
+    IndexType mCapacity;
 };
 
+} // namespace Heap
 } // namespace ot
 
-#endif // ARRAY_HPP_
+#endif // HEAP_ARRAY_HPP_

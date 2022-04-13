@@ -1291,15 +1291,16 @@ void MeshForwarder::HandleFragment(const uint8_t *       aFrame,
     }
     else // Received frame is a "next fragment".
     {
-        for (message = mReassemblyList.GetHead(); message; message = message->GetNext())
+        for (Message &msg : mReassemblyList)
         {
             // Security Check: only consider reassembly buffers that had the same Security Enabled setting.
-            if (message->GetLength() == fragmentHeader.GetDatagramSize() &&
-                message->GetDatagramTag() == fragmentHeader.GetDatagramTag() &&
-                message->GetOffset() == fragmentHeader.GetDatagramOffset() &&
-                message->GetOffset() + aFrameLength <= fragmentHeader.GetDatagramSize() &&
-                message->IsLinkSecurityEnabled() == aLinkInfo.IsLinkSecurityEnabled())
+            if (msg.GetLength() == fragmentHeader.GetDatagramSize() &&
+                msg.GetDatagramTag() == fragmentHeader.GetDatagramTag() &&
+                msg.GetOffset() == fragmentHeader.GetDatagramOffset() &&
+                msg.GetOffset() + aFrameLength <= fragmentHeader.GetDatagramSize() &&
+                msg.IsLinkSecurityEnabled() == aLinkInfo.IsLinkSecurityEnabled())
             {
+                message = &msg;
                 break;
             }
         }
@@ -1346,17 +1347,17 @@ exit:
 
 void MeshForwarder::ClearReassemblyList(void)
 {
-    for (const Message *message = mReassemblyList.GetHead(); message != nullptr; message = message->GetNext())
+    for (Message &message : mReassemblyList)
     {
-        LogMessage(kMessageReassemblyDrop, *message, nullptr, kErrorNoFrameReceived);
+        LogMessage(kMessageReassemblyDrop, message, nullptr, kErrorNoFrameReceived);
 
-        if (message->GetType() == Message::kTypeIp6)
+        if (message.GetType() == Message::kTypeIp6)
         {
             mIpCounters.mRxFailure++;
         }
-    }
 
-    mReassemblyList.DequeueAndFreeAll();
+        mReassemblyList.DequeueAndFree(message);
+    }
 }
 
 void MeshForwarder::HandleTimeTick(void)
@@ -1377,26 +1378,22 @@ void MeshForwarder::HandleTimeTick(void)
 
 bool MeshForwarder::UpdateReassemblyList(void)
 {
-    Message *next = nullptr;
-
-    for (Message *message = mReassemblyList.GetHead(); message; message = next)
+    for (Message &message : mReassemblyList)
     {
-        next = message->GetNext();
-
-        if (message->GetTimeout() > 0)
+        if (message.GetTimeout() > 0)
         {
-            message->DecrementTimeout();
+            message.DecrementTimeout();
         }
         else
         {
-            LogMessage(kMessageReassemblyDrop, *message, nullptr, kErrorReassemblyTimeout);
+            LogMessage(kMessageReassemblyDrop, message, nullptr, kErrorReassemblyTimeout);
 
-            if (message->GetType() == Message::kTypeIp6)
+            if (message.GetType() == Message::kTypeIp6)
             {
                 mIpCounters.mRxFailure++;
             }
 
-            mReassemblyList.DequeueAndFree(*message);
+            mReassemblyList.DequeueAndFree(message);
         }
     }
 
@@ -1704,7 +1701,7 @@ exit:
     return error;
 }
 
-#if OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_NOTE
+#if OT_SHOULD_LOG_AT(OT_LOG_LEVEL_NOTE)
 
 const char *MeshForwarder::MessageActionToString(MessageAction aAction, Error aError)
 {
@@ -1884,7 +1881,7 @@ void MeshForwarder::LogLowpanHcFrameDrop(Error               aError,
             aFrameLength, aMacSource.ToString().AsCString(), aMacDest.ToString().AsCString(), ToYesNo(aIsSecure));
 }
 
-#else // #if OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_NOTE
+#else // #if OT_SHOULD_LOG_AT( OT_LOG_LEVEL_NOTE)
 
 void MeshForwarder::LogMessage(MessageAction, const Message &, const Mac::Address *, Error)
 {
@@ -1907,7 +1904,7 @@ void MeshForwarder::LogLowpanHcFrameDrop(Error, uint16_t, const Mac::Address &, 
 {
 }
 
-#endif // #if OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_NOTE
+#endif // #if OT_SHOULD_LOG_AT( OT_LOG_LEVEL_NOTE)
 
 // LCOV_EXCL_STOP
 

@@ -37,7 +37,6 @@
 #include "common/code_utils.hpp"
 #include "common/instance.hpp"
 #include "common/locator_getters.hpp"
-#include "common/log.hpp"
 #include "meshcop/dataset.hpp"
 #include "thread/mle.hpp"
 
@@ -50,7 +49,7 @@ RegisterLogModule("Settings");
 
 // LCOV_EXCL_START
 
-#if OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_INFO
+#if OT_SHOULD_LOG_AT(OT_LOG_LEVEL_INFO)
 
 void SettingsBase::NetworkInfo::Log(Action aAction) const
 {
@@ -106,9 +105,9 @@ void SettingsBase::SrpServerInfo::Log(Action aAction) const
 }
 #endif
 
-#endif // OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_INFO
+#endif // OT_SHOULD_LOG_AT(OT_LOG_LEVEL_INFO)
 
-#if OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_INFO
+#if OT_SHOULD_LOG_AT(OT_LOG_LEVEL_INFO)
 const char *SettingsBase::ActionToString(Action aAction)
 {
     static const char *const kActionStrings[] = {
@@ -135,9 +134,9 @@ const char *SettingsBase::ActionToString(Action aAction)
 
     return kActionStrings[aAction];
 }
-#endif // OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_INFO
+#endif // OT_SHOULD_LOG_AT(OT_LOG_LEVEL_INFO)
 
-#if OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_WARN
+#if OT_SHOULD_LOG_AT(OT_LOG_LEVEL_WARN)
 const char *SettingsBase::KeyToString(Key aKey)
 {
     static const char *const kKeyStrings[] = {
@@ -150,12 +149,13 @@ const char *SettingsBase::KeyToString(Key aKey)
         "",                  // (6)  kKeyReserved
         "SlaacIidSecretKey", // (7)  kKeySlaacIidSecretKey
         "DadInfo",           // (8)  kKeyDadInfo
-        "OmrPrefix",         // (9)  kKeyOmrPrefix
+        "LegacyOmrPrefix",   // (9)  kKeyLegacyOmrPrefix
         "OnLinkPrefix",      // (10) kKeyOnLinkPrefix
         "SrpEcdsaKey",       // (11) kKeySrpEcdsaKey
         "SrpClientInfo",     // (12) kKeySrpClientInfo
         "SrpServerInfo",     // (13) kKeySrpServerInfo
-        "Nat64Prefix",       // (14) kKeyNat64Prefix
+        "LegacyNat64Prefix", // (14) kKeyLegacyNat64Prefix
+        "BrUlaPrefix",       // (15) kKeyBrUlaPrefix
     };
 
     static_assert(1 == kKeyActiveDataset, "kKeyActiveDataset value is incorrect");
@@ -166,20 +166,21 @@ const char *SettingsBase::KeyToString(Key aKey)
     static_assert(6 == kKeyReserved, "kKeyReserved value is incorrect");
     static_assert(7 == kKeySlaacIidSecretKey, "kKeySlaacIidSecretKey value is incorrect");
     static_assert(8 == kKeyDadInfo, "kKeyDadInfo value is incorrect");
-    static_assert(9 == kKeyOmrPrefix, "kKeyOmrPrefix value is incorrect");
+    static_assert(9 == kKeyLegacyOmrPrefix, "kKeyLegacyOmrPrefix value is incorrect");
     static_assert(10 == kKeyOnLinkPrefix, "kKeyOnLinkPrefix value is incorrect");
     static_assert(11 == kKeySrpEcdsaKey, "kKeySrpEcdsaKey value is incorrect");
     static_assert(12 == kKeySrpClientInfo, "kKeySrpClientInfo value is incorrect");
     static_assert(13 == kKeySrpServerInfo, "kKeySrpServerInfo value is incorrect");
-    static_assert(14 == kKeyNat64Prefix, "kKeyNat64Prefix value is incorrect");
+    static_assert(14 == kKeyLegacyNat64Prefix, "kKeyLegacyNat64Prefix value is incorrect");
+    static_assert(15 == kKeyBrUlaPrefix, "kKeyBrUlaPrefix value is incorrect");
 
-    static_assert(kLastKey == kKeyNat64Prefix, "kLastKey is not valid");
+    static_assert(kLastKey == kKeyBrUlaPrefix, "kLastKey is not valid");
 
     OT_ASSERT(aKey <= kLastKey);
 
     return kKeyStrings[aKey];
 }
-#endif // OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_WARN
+#endif // OT_SHOULD_LOG_AT(OT_LOG_LEVEL_WARN)
 
 // LCOV_EXCL_STOP
 
@@ -360,7 +361,7 @@ void Settings::Log(Action aAction, Error aError, Key aKey, const void *aValue)
     {
         // Log error if log level is at "warn" or higher.
 
-#if (OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_WARN)
+#if OT_SHOULD_LOG_AT(OT_LOG_LEVEL_WARN)
         const char *actionText = "";
 
         switch (aAction)
@@ -396,7 +397,7 @@ void Settings::Log(Action aAction, Error aError, Key aKey, const void *aValue)
 
         LogWarn("Error %s %s %s", ErrorToString(aError), actionText, KeyToString(aKey));
 
-#endif // #if (OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_WARN)
+#endif // #if OT_SHOULD_LOG_AT(OT_LOG_LEVEL_WARN)
 
         ExitNow();
     }
@@ -404,7 +405,7 @@ void Settings::Log(Action aAction, Error aError, Key aKey, const void *aValue)
     // We reach here when `aError` is `kErrorNone`.
     // Log success if log level is at "info" or higher.
 
-#if (OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_INFO)
+#if OT_SHOULD_LOG_AT(OT_LOG_LEVEL_INFO)
     if (aValue != nullptr)
     {
         switch (aKey)
@@ -430,9 +431,10 @@ void Settings::Log(Action aAction, Error aError, Key aKey, const void *aValue)
 #endif
 
 #if OPENTHREAD_CONFIG_BORDER_ROUTING_ENABLE
-        case kKeyOmrPrefix:
+        case kKeyBrUlaPrefix:
+        case kKeyLegacyOmrPrefix:
         case kKeyOnLinkPrefix:
-        case kKeyNat64Prefix:
+        case kKeyLegacyNat64Prefix:
             LogPrefix(aAction, aKey, *reinterpret_cast<const Ip6::Prefix *>(aValue));
             break;
 #endif
@@ -463,7 +465,7 @@ void Settings::Log(Action aAction, Error aError, Key aKey, const void *aValue)
     {
         LogInfo("%s %s", ActionToString(aAction), KeyToString(aKey));
     }
-#endif // (OPENTHREAD_CONFIG_LOG_LEVEL >= OT_LOG_LEVEL_INFO)
+#endif // OT_SHOULD_LOG_AT(OT_LOG_LEVEL_INFO)
 
 exit:
     return;

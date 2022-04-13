@@ -207,6 +207,7 @@ SOURCES_COMMON                                  = \
     crypto/aes_ecb.cpp                            \
     crypto/crypto_platform.cpp                    \
     crypto/ecdsa.cpp                              \
+    crypto/ecdsa_tinycrypt.cpp                    \
     crypto/hkdf_sha256.cpp                        \
     crypto/hmac_sha256.cpp                        \
     crypto/mbedtls.cpp                            \
@@ -435,6 +436,7 @@ HEADERS_COMMON                                  = \
     common/extension.hpp                          \
     common/heap.hpp                               \
     common/heap_allocatable.hpp                   \
+    common/heap_array.hpp                         \
     common/heap_data.hpp                          \
     common/heap_string.hpp                        \
     common/instance.hpp                           \
