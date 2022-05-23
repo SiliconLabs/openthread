@@ -1156,6 +1156,16 @@ class NodeImpl:
         self.send_command(cmd)
         return int(self._expect_result('\d+'))
 
+    def srp_client_set_ttl(self, ttl: int):
+        cmd = f'srp client ttl {ttl}'
+        self.send_command(cmd)
+        self._expect_done()
+
+    def srp_client_get_ttl(self) -> int:
+        cmd = 'srp client ttl'
+        self.send_command(cmd)
+        return int(self._expect_result('\d+'))
+
     #
     # TREL utilities
     #
@@ -1920,8 +1930,13 @@ class NodeImpl:
         return self._expect_command_output()[0]
 
     def get_netdata_omr_prefixes(self):
-        prefixes = [prefix.split(' ')[0] for prefix in self.get_prefixes()]
-        return prefixes
+        omr_prefixes = []
+        for prefix in self.get_prefixes():
+            prefix, flags = prefix.split()[:2]
+            if 'a' in flags and 'o' in flags and 's' in flags and 'D' not in flags:
+                omr_prefixes.append(prefix)
+
+        return omr_prefixes
 
     def get_br_on_link_prefix(self):
         cmd = 'br onlinkprefix'

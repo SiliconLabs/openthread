@@ -430,6 +430,11 @@ DefineCoreType(otBufferInfo, Instance::BufferInfo);
 
 // Specializations of the `Get<Type>()` method.
 
+template <> inline Instance &Instance::Get(void)
+{
+    return *this;
+}
+
 template <> inline Radio &Instance::Get(void)
 {
     return mRadio;
@@ -966,6 +971,11 @@ template <> inline Utils::Otns &Instance::Get(void)
 template <> inline BorderRouter::RoutingManager &Instance::Get(void)
 {
     return mRoutingManager;
+}
+
+template <> inline BorderRouter::InfraIf &Instance::Get(void)
+{
+    return mRoutingManager.mInfraIf;
 }
 #endif
 

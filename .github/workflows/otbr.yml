@@ -124,6 +124,11 @@ jobs:
             cert_scripts: ./tests/scripts/thread-cert/border_router/MATN/*.py
             packet_verification: 1
             description: "MATN"
+          - otbr_mdns: "mDNSResponder"
+            otbr_trel: 0
+            cert_scripts: ./tests/scripts/thread-cert/border_router/LowPower/*.py
+            packet_verification: 1
+            description: "LowPower"
           - otbr_mdns: "avahi"
             otbr_trel: 0
             cert_scripts: ./tests/scripts/thread-cert/border_router/*.py
@@ -215,7 +220,7 @@ jobs:
         script/test combine_coverage
     - name: Upload Coverage
       continue-on-error: true
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       with:
         files: final.info
         fail_ci_if_error: true
