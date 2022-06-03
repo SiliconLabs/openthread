@@ -160,6 +160,7 @@ EXTRA_DIST                                                         = \
     test_common.py                                                   \
     test_crypto.py                                                   \
     test_dataset_updater.py                                          \
+    test_detach.py                                                   \
     test_diag.py                                                     \
     test_dns_client_config_auto_start.py                             \
     test_dnssd.py                                                    \
@@ -187,6 +188,7 @@ EXTRA_DIST                                                         = \
     test_router_upgrade.py                                           \
     test_service.py                                                  \
     test_set_mliid.py                                                \
+    test_srp_auto_host_address.py                                    \
     test_srp_auto_start_mode.py                                      \
     test_srp_client_remove_host.py                                   \
     test_srp_client_save_server_info.py                              \
@@ -196,6 +198,7 @@ EXTRA_DIST                                                         = \
     test_srp_server_anycast_mode.py                                  \
     test_srp_server_reboot_port.py                                   \
     test_srp_sub_type.py                                             \
+    test_srp_ttl.py                                                  \
     test_zero_len_external_route.py                                  \
     thread_cert.py                                                   \
     tlvs_parsing.py                                                  \
@@ -235,6 +238,7 @@ check_SCRIPTS                                                      = \
     test_common.py                                                   \
     test_crypto.py                                                   \
     test_dataset_updater.py                                          \
+    test_detach.py                                                   \
     test_diag.py                                                     \
     test_dns_client_config_auto_start.py                             \
     test_dnssd.py                                                    \
@@ -261,6 +265,7 @@ check_SCRIPTS                                                      = \
     test_router_reattach.py                                          \
     test_router_upgrade.py                                           \
     test_service.py                                                  \
+    test_srp_auto_host_address.py                                    \
     test_srp_auto_start_mode.py                                      \
     test_srp_client_remove_host.py                                   \
     test_srp_client_save_server_info.py                              \
@@ -270,6 +275,7 @@ check_SCRIPTS                                                      = \
     test_srp_server_anycast_mode.py                                  \
     test_srp_server_reboot_port.py                                   \
     test_srp_sub_type.py                                             \
+    test_srp_ttl.py                                                  \
     test_zero_len_external_route.py                                  \
     Cert_5_1_01_RouterAttach.py                                      \
     Cert_5_1_02_ChildAddressTimeout.py                               \

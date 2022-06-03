@@ -815,6 +815,30 @@ class NodeImpl:
         self.send_command('thread stop')
         self._expect_done()
 
+    def detach(self, is_async=False):
+        cmd = 'detach'
+        if is_async:
+            cmd += ' async'
+
+        self.send_command(cmd)
+
+        if is_async:
+            self._expect_done()
+            return
+
+        end = self.simulator.now() + 4
+        while True:
+            self.simulator.go(1)
+            try:
+                self._expect_done(timeout=0.1)
+                return
+            except (pexpect.TIMEOUT, socket.timeout):
+                if self.simulator.now() > end:
+                    raise
+
+    def expect_finished_detaching(self):
+        self._expect('Finished detaching')
+
     def commissioner_start(self):
         cmd = 'commissioner start'
         self.send_command(cmd)
@@ -929,6 +953,10 @@ class NodeImpl:
         self.send_command(f'srp server lease {min_lease} {max_lease} {min_key_lease} {max_key_lease}')
         self._expect_done()
 
+    def srp_server_set_ttl_range(self, min_ttl, max_ttl):
+        self.send_command(f'srp server ttl {min_ttl} {max_ttl}')
+        self._expect_done()
+
     def srp_server_get_hosts(self):
         """Returns the host list on the SRP server as a list of property
            dictionary.
@@ -989,6 +1017,7 @@ class NodeImpl:
                'port': '12345',
                'priority': '0',
                'weight': '0',
+               'ttl': '7200',
                'TXT': ['abc=010203'],
                'host_fullname': 'my-host.default.service.arpa.',
                'host': 'my-host',
@@ -1015,8 +1044,8 @@ class NodeImpl:
                 service_list.append(service)
                 continue
 
-            # 'subtypes', port', 'priority', 'weight'
-            for i in range(0, 4):
+            # 'subtypes', port', 'priority', 'weight', 'ttl'
+            for i in range(0, 5):
                 key_value = lines.pop(0).strip().split(':')
                 service[key_value[0].strip()] = key_value[1].strip()
 
@@ -1115,6 +1144,10 @@ class NodeImpl:
 
     def srp_client_clear_host(self):
         self.send_command(f'srp client host clear')
+        self._expect_done()
+
+    def srp_client_enable_auto_host_address(self):
+        self.send_command(f'srp client host address auto')
         self._expect_done()
 
     def srp_client_set_host_address(self, *addrs: str):
