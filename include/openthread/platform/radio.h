@@ -253,6 +253,8 @@ typedef struct otRadioFrame
 
     uint8_t mRadioType; ///< Radio link type - should be ignored by radio driver.
 
+    uint8_t mIid; ///< Interface Id for the radio packet.
+
     /**
      * The union of transmit and receive information for a radio frame.
      */
@@ -1140,6 +1142,33 @@ otError otPlatRadioConfigureEnhAckProbing(otInstance *        aInstance,
                                           otLinkMetrics       aLinkMetrics,
                                           otShortAddress      aShortAddress,
                                           const otExtAddress *aExtAddress);
+
+
+#if OPENTHREAD_CONFIG_DIAG_ENABLE
+
+/**
+ * Enable transmitting stream random character mode.
+ *
+ */
+otError otPlatDiagTxStreamRandom(void);
+
+/**
+ * Enable transmitting stream unmodulated tone mode.
+ *
+ */
+otError otPlatDiagTxStreamTone(void);
+
+/**
+ * Disable transmitting stream mode.
+ *
+ */
+otError otPlatDiagTxStreamStop(void);
+
+otError otPlatDiagTxStreamAddrMatch(uint8_t enable);
+otError otPlatDiagTxStreamAutoAck(uint8_t autoAckEnabled);
+
+#endif // #if OPENTHREAD_CONFIG_DIAG_ENABLE
+
 
 /**
  * @}
