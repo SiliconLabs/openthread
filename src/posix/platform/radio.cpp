@@ -51,6 +51,7 @@ static ot::Spinel::RadioSpinel<ot::Posix::HdlcInterface, VirtualTimeEvent> sRadi
 #else
 static ot::Spinel::RadioSpinel<ot::Posix::HdlcInterface, RadioProcessContext> sRadioSpinel;
 #endif // OPENTHREAD_POSIX_VIRTUAL_TIME
+
 #elif OPENTHREAD_POSIX_CONFIG_RCP_BUS == OT_POSIX_RCP_BUS_SPI
 #include "spi_interface.hpp"
 
@@ -91,13 +92,23 @@ Radio::Radio(const char *aUrl)
 
 void Radio::Init(void)
 {
-    bool        resetRadio             = (mRadioUrl.GetValue("no-reset") == nullptr);
-    bool        restoreDataset         = (mRadioUrl.GetValue("ncp-dataset") != nullptr);
-    bool        skipCompatibilityCheck = (mRadioUrl.GetValue("skip-rcp-compatibility-check") != nullptr);
-    const char *parameterValue;
-    const char *region;
+    bool         resetRadio             = (mRadioUrl.GetValue("no-reset") == nullptr);
+    bool         restoreDataset         = (mRadioUrl.GetValue("ncp-dataset") != nullptr);
+    bool         skipCompatibilityCheck = (mRadioUrl.GetValue("skip-rcp-compatibility-check") != nullptr);
+    spinel_iid_t iid                    = 0;
+    const char  *iidString              = (mRadioUrl.GetValue("iid"));
+    const char  *parameterValue;
+    const char  *region;
 #if OPENTHREAD_POSIX_CONFIG_MAX_POWER_TABLE_ENABLE
     const char *maxPowerTable;
+#endif
+
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    VerifyOrDie(iidString != nullptr, OT_EXIT_INVALID_ARGUMENTS);
+    iid = static_cast<spinel_iid_t>(atoi(iidString));
+    VerifyOrDie(iid != 0 && iid <= SPINEL_HEADER_IID_MAX, OT_EXIT_INVALID_ARGUMENTS);
+#else
+    VerifyOrDie(iidString == nullptr, OT_EXIT_INVALID_ARGUMENTS);
 #endif
 
 #if OPENTHREAD_POSIX_VIRTUAL_TIME
@@ -114,7 +125,7 @@ void Radio::Init(void)
 #endif
 
     SuccessOrDie(sRadioSpinel.GetSpinelInterface().Init(mRadioUrl));
-    sRadioSpinel.Init(resetRadio, restoreDataset, skipCompatibilityCheck);
+    sRadioSpinel.Init(resetRadio, restoreDataset, skipCompatibilityCheck, iid);
 
     parameterValue = mRadioUrl.GetValue("fem-lnagain");
     if (parameterValue != nullptr)
