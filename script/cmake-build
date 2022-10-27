@@ -70,6 +70,7 @@ readonly OT_SRCDIR
 OT_PLATFORMS=(simulation posix)
 readonly OT_PLATFORMS
 
+readonly OT_POSIX_BUILD_TYPES=(multipan_rcp)
 OT_POSIX_SIM_COMMON_OPTIONS=(
     "-DOT_ANYCAST_LOCATOR=ON"
     "-DOT_BORDER_AGENT=ON"
@@ -109,6 +110,14 @@ OT_POSIX_SIM_COMMON_OPTIONS=(
 )
 readonly OT_POSIX_SIM_COMMON_OPTIONS
 
+readonly OT_POSIX_MULTIPAN_RCP_OPTIONS=(
+    "-DOT_MULTIPAN_RCP=ON"
+    "-DOT_RCP_RESTORATION_MAX_COUNT=100"
+    "-DOT_POSIX_MAX_POWER_TABLE=OFF"
+    "-DOT_CHANNEL_MANAGER=OFF"
+    "-DOT_CHANNEL_MONITOR=OFF"
+)
+
 die()
 {
     echo " ** ERROR: Openthread CMake doesn't support platform \"$1\""
@@ -146,6 +155,13 @@ main()
     # Check if the platform supports cmake.
     echo "${OT_PLATFORMS[@]}" | grep -wq "${platform}" || die "${platform}"
 
+    local posix_build_type=""
+    if [[ ${platform} == posix* ]] && [ "$#" -ge 2 ]; then
+        posix_build_type="$2"
+        echo "${OT_POSIX_BUILD_TYPES[@]}" | grep -wq "${posix_build_type}" || die "${posix_build_type}"
+        shift
+    fi
+
     shift
     local local_options=()
     local options=(
@@ -160,6 +176,12 @@ main()
                 "-DOT_POSIX_MAX_POWER_TABLE=ON"
             )
             options+=("${OT_POSIX_SIM_COMMON_OPTIONS[@]}" "${local_options[@]}")
+
+            case "${posix_build_type}" in
+                multipan_rcp)
+                    options+=("${local_options[@]}" "${OT_POSIX_MULTIPAN_RCP_OPTIONS[@]}")
+                    ;;
+            esac
             ;;
         simulation)
             local_options=("-DOT_LINK_RAW=ON")
