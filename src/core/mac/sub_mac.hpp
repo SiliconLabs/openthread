@@ -324,7 +324,14 @@ public:
      * @retval FALSE if the sub-mac is not busy transmitting or scanning.
      *
      */
-    bool IsTransmittingOrScanning(void) const { return (mState == kStateTransmit) || (mState == kStateEnergyScan); }
+    bool IsTransmittingOrScanning(void) const
+    {
+        return ((mState == kStateTransmit) || (mState == kStateEnergyScan) || (mState == kStateCsmaBackoff)
+#if OPENTHREAD_CONFIG_MAC_ADD_DELAY_ON_NO_ACK_ERROR_BEFORE_RETRY
+                || (mState == kStateDelayBeforeRetx)
+#endif
+        );
+    }
 
     /**
      * This method transitions the radio to Receive.
