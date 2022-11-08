@@ -446,8 +446,11 @@ extern char gNetifName[IFNAMSIZ];
  * The index of Thread network interface.
  *
  */
+#if __ANDROID__
+extern int gNetifIndex;
+#else
 extern unsigned int gNetifIndex;
-
+#endif
 /**
  * The CIDR for NAT64
  */

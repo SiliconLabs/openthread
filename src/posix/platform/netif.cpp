@@ -154,9 +154,13 @@ extern int
 
 #include "resolver.hpp"
 
+#if __ANDROID__
+int gNetifIndex = 0;
+#else
 unsigned int gNetifIndex = 0;
-char         gNetifName[IFNAMSIZ];
-otIp4Cidr    gNat64Cidr;
+#endif
+char      gNetifName[IFNAMSIZ];
+otIp4Cidr gNat64Cidr;
 
 const char *otSysGetThreadNetifName(void) { return gNetifName; }
 
