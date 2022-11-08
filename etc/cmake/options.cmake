@@ -40,6 +40,7 @@ message(STATUS OT_APP_RCP=${OT_APP_RCP})
 message(STATUS OT_FTD=${OT_FTD})
 message(STATUS OT_MTD=${OT_MTD})
 message(STATUS OT_RCP=${OT_RCP})
+option(OT_LINKER_MAP "generate .map files for example apps" ON)
 
 set(OT_CONFIG_VALUES
     ""
