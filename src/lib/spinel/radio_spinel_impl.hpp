@@ -2350,12 +2350,22 @@ void RadioSpinel<InterfaceType, ProcessContextType>::RecoverFromRcpFailure(void)
     case kStateSleep:
         break;
     case kStateReceive:
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+        // In case multiple PANs are running, dont force RCP to receive state
+        IgnoreError(Set(SPINEL_PROP_MAC_RAW_STREAM_ENABLED, SPINEL_DATATYPE_BOOL_S, true));
+#else
         SuccessOrDie(Set(SPINEL_PROP_MAC_RAW_STREAM_ENABLED, SPINEL_DATATYPE_BOOL_S, true));
+#endif
         mState = kStateReceive;
         break;
     case kStateTransmitting:
     case kStateTransmitDone:
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+        // In case multiple PANs are running, dont force RCP to receive state
+        IgnoreError(Set(SPINEL_PROP_MAC_RAW_STREAM_ENABLED, SPINEL_DATATYPE_BOOL_S, true));
+#else
         SuccessOrDie(Set(SPINEL_PROP_MAC_RAW_STREAM_ENABLED, SPINEL_DATATYPE_BOOL_S, true));
+#endif
         mTxError = OT_ERROR_ABORT;
         mState   = kStateTransmitDone;
         break;
@@ -2383,7 +2393,12 @@ void RadioSpinel<InterfaceType, ProcessContextType>::RestoreProperties(void)
     SuccessOrDie(Set(SPINEL_PROP_MAC_15_4_PANID, SPINEL_DATATYPE_UINT16_S, mPanId));
     SuccessOrDie(Set(SPINEL_PROP_MAC_15_4_SADDR, SPINEL_DATATYPE_UINT16_S, mShortAddress));
     SuccessOrDie(Set(SPINEL_PROP_MAC_15_4_LADDR, SPINEL_DATATYPE_EUI64_S, mExtendedAddress.m8));
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    // In case multiple PANs are running, dont force RCP to change channel
+    IgnoreError(Set(SPINEL_PROP_PHY_CHAN, SPINEL_DATATYPE_UINT8_S, mChannel));
+#else
     SuccessOrDie(Set(SPINEL_PROP_PHY_CHAN, SPINEL_DATATYPE_UINT8_S, mChannel));
+#endif
 
     if (mMacKeySet)
     {

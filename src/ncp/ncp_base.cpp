@@ -309,7 +309,7 @@ NcpBase::NcpBase(Instance *aInstance)
 
 NcpBase *NcpBase::GetNcpInstance(void) { return sNcpInstance; }
 
-spinel_iid_t NcpBase::GetCurCommandIid(void) { return mCurCommandIID; }
+spinel_iid_t NcpBase::GetCurCommandIid(void) const { return mCurCommandIID; }
 
 void NcpBase::ResetCounters(void)
 {
@@ -865,6 +865,9 @@ otError NcpBase::EnqueuePendingCommand(PendingCommandType aType, uint8_t aHeader
         break;
 
     case kPendingCommandTypeEnergyScan:
+        // We dont have access to header, but mCurCommandIID
+        // is updated in HandleReceive, use that instead.
+        entry->mIid         = mCurCommandIID;
         entry->mScanChannel = aScanChannel;
         break;
 
