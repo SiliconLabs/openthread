@@ -62,7 +62,8 @@ extern "C" {
 #endif // RADIO_CONFIG_SRC_MATCH_PANID_NUM
 
 #if RADIO_CONFIG_SRC_MATCH_SHORT_ENTRY_NUM || RADIO_CONFIG_SRC_MATCH_EXT_ENTRY_NUM
-void utilsSoftSrcMatchSetPanId(uint8_t iid, uint16_t aPanId);
+void    utilsSoftSrcMatchSetPanId(uint8_t iid, uint16_t aPanId);
+uint8_t utilsSoftSrcMatchFindIidFromPanId(otPanId panId);
 #endif // RADIO_CONFIG_SRC_MATCH_SHORT_ENTRY_NUM || RADIO_CONFIG_SRC_MATCH_EXT_ENTRY_NUM
 
 #if RADIO_CONFIG_SRC_MATCH_SHORT_ENTRY_NUM
@@ -72,8 +73,6 @@ int16_t utilsSoftSrcMatchShortFindEntry(uint8_t iid, uint16_t aShortAddress);
 #if RADIO_CONFIG_SRC_MATCH_EXT_ENTRY_NUM
 int16_t utilsSoftSrcMatchExtFindEntry(uint8_t iid, const otExtAddress *aExtAddress);
 #endif // RADIO_CONFIG_SRC_MATCH_EXT_ENTRY_NUM
-
-uint8_t utilsSoftSrcMatchFindIidFromPanId(otPanId panId);
 
 #ifdef __cplusplus
 } // extern "C"
