@@ -86,6 +86,9 @@ readonly FULL_LOGS
 TREL=${TREL:-0}
 readonly TREL
 
+MULTIPAN_RCP="${MULTIPAN_RCP:-0}"
+readonly MULTIPAN_RCP
+
 LOCAL_OTBR_DIR=${LOCAL_OTBR_DIR:-""}
 readonly LOCAL_OTBR_DIR
 
@@ -152,6 +155,13 @@ build_simulation()
         fi
 
     fi
+
+    if [[ ${MULTIPAN_RCP} == 1 ]] && [[ ${OT_NODE_TYPE} == rcp* ]]; then
+
+        options+=("-DOT_MULTIPAN_RCP=ON")
+
+        OT_CMAKE_NINJA_TARGET=ot-rcp OT_CMAKE_BUILD_DIR="${OT_BUILDDIR}/openthread-simulation-${version}/multipan" "${OT_SRCDIR}"/script/cmake-build simulation "${options[@]}"
+    fi
 }
 
 build_posix()
@@ -187,6 +197,13 @@ build_posix()
         options+=("-DOT_BACKBONE_ROUTER=ON")
 
         OT_CMAKE_BUILD_DIR="${OT_BUILDDIR}/openthread-posix-${version}-bbr" "${OT_SRCDIR}"/script/cmake-build posix "${options[@]}"
+    fi
+
+    if [[ ${MULTIPAN_RCP} == 1 ]]; then
+
+        options+=("-DOT_MULTIPAN_RCP=ON")
+
+        OT_CMAKE_BUILD_DIR="${OT_BUILDDIR}/openthread-posix-${version}/multipan" "${OT_SRCDIR}"/script/cmake-build posix "${options[@]}"
     fi
 }
 
@@ -479,6 +496,7 @@ ENVIRONMENTS:
     THREAD_VERSION  1.1 for Thread 1.1 stack, 1.3 for Thread 1.3 stack. The default is 1.3.
     INTER_OP        1 to build 1.1 together. Only works when THREAD_VERSION is 1.3. The default is 0.
     INTER_OP_BBR    1 to build bbr version together. Only works when THREAD_VERSION is 1.3. The default is 1.
+    MULTIPAN_RCP    1 to build multi iid spinel support.
 
 COMMANDS:
     clean           Clean built files to prepare for new build.
@@ -624,6 +642,9 @@ envsetup()
     export OT_SIMULATION_APPS="${OT_BUILDDIR}/openthread-simulation-${THREAD_VERSION}/examples/apps"
     export OT_POSIX_APPS="${OT_BUILDDIR}/openthread-posix-${THREAD_VERSION}/src/posix"
 
+    export OT_SIMULATION_MP_APPS="${OT_BUILDDIR}/openthread-simulation-${THREAD_VERSION}/multipan/examples/apps"
+    export OT_POSIX_MP_APPS="${OT_BUILDDIR}/openthread-posix-${THREAD_VERSION}/multipan/src/posix"
+
     if [[ ! ${VIRTUAL_TIME+x} ]]; then
         # All expect tests only works in real time mode.
         VIRTUAL_TIME=1
@@ -636,7 +657,7 @@ envsetup()
     fi
 
     readonly VIRTUAL_TIME
-    export OT_NODE_TYPE VIRTUAL_TIME
+    export OT_NODE_TYPE VIRTUAL_TIME MULTIPAN_RCP
 
     # CMake always works in verbose mode if VERBOSE exists in environments.
     if [[ ${VERBOSE} == 1 ]]; then

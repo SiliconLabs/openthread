@@ -47,7 +47,7 @@
 // Print entire source match tables when
 #define PRINT_MULTIPAN_SOURCE_MATCH_TABLES 0
 
-#if OPENTHREAD_RADIO && OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE == 1
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
 extern uint8_t        otNcpPlatGetCurCommandIid(void);
 static inline uint8_t getPanIndex(uint8_t iid)
 {
@@ -55,10 +55,10 @@ static inline uint8_t getPanIndex(uint8_t iid)
     assert(iid != 0);
     return iid - 1;
 }
-#else
+#else // !OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
 #define otNcpPlatGetCurCommandIid() 0
 #define getPanIndex(iid) 0
-#endif
+#endif // OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
 
 #if RADIO_CONFIG_SRC_MATCH_SHORT_ENTRY_NUM || RADIO_CONFIG_SRC_MATCH_EXT_ENTRY_NUM
 static uint16_t sPanId[RADIO_CONFIG_SRC_MATCH_PANID_NUM] = {0};
@@ -139,7 +139,7 @@ int16_t utilsSoftSrcMatchShortFindEntry(uint8_t iid, uint16_t aShortAddress)
 
     int16_t entry = -1;
 
-#if OPENTHREAD_RADIO && OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE == 1
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
     if (iid == 0)
     {
         return entry;
@@ -214,7 +214,7 @@ otError otPlatRadioAddSrcMatchShortEntry(otInstance *aInstance, uint16_t aShortA
     int16_t entry = -1;
 
     iid = otNcpPlatGetCurCommandIid();
-#if OPENTHREAD_RADIO && OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE == 1
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
     // Prevent duplicate entries in multipan use case.
     entry = utilsSoftSrcMatchShortFindEntry(iid, aShortAddress);
     otEXPECT(!(entry >= 0 && entry < RADIO_CONFIG_SRC_MATCH_SHORT_ENTRY_NUM));
@@ -305,7 +305,7 @@ int16_t utilsSoftSrcMatchExtFindEntry(uint8_t iid, const otExtAddress *aExtAddre
 
     int16_t entry = -1;
 
-#if OPENTHREAD_RADIO && OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE == 1
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
     if (iid == 0)
     {
         return entry;
@@ -389,7 +389,7 @@ otError otPlatRadioAddSrcMatchExtEntry(otInstance *aInstance, const otExtAddress
     int16_t entry = -1;
 
     uint8_t iid = otNcpPlatGetCurCommandIid();
-#if OPENTHREAD_RADIO && OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE == 1
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
     // Prevent duplicate entries in multipan use case.
     entry = utilsSoftSrcMatchExtFindEntry(iid, aExtAddress);
     otEXPECT(!(entry >= 0 && entry < RADIO_CONFIG_SRC_MATCH_EXT_ENTRY_NUM));

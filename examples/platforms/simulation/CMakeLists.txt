@@ -28,6 +28,7 @@
 
 set(OT_PLATFORM_LIB "openthread-simulation" PARENT_SCOPE)
 
+
 add_library(ot-simulation-config INTERFACE)
 
 option(OT_SIMULATION_VIRTUAL_TIME "enable virtual time")
@@ -55,6 +56,7 @@ list(APPEND OT_PLATFORM_DEFINES
     "OPENTHREAD_EXAMPLES_SIMULATION=1"
     "OPENTHREAD_CONFIG_NCP_HDLC_ENABLE=1"
 )
+
 set(OT_PLATFORM_DEFINES ${OT_PLATFORM_DEFINES} PARENT_SCOPE)
 
 add_library(openthread-simulation
