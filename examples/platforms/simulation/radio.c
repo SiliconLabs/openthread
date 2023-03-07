@@ -160,6 +160,15 @@ otRadioCaps gRadioCaps =
     OT_RADIO_CAPS_NONE;
 #endif
 
+#if OPENTHREAD_RADIO && OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE == 1
+extern uint8_t otNcpPlatGetCurCommandIid(void);
+#else // OPENTHREAD_RADIO && OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE == 1
+#define otNcpPlatGetCurCommandIid() 0
+#endif // OPENTHREAD_RADIO && OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE == 1
+#define RADIO_BCAST_IID (0)
+#define RADIO_BCAST_PANID (0xFFFF)
+#define INVALID_VALUE (0xFF)
+
 static uint32_t         sMacFrameCounter;
 static uint8_t          sKeyId;
 static otMacKeyMaterial sPrevKey;
@@ -299,25 +308,49 @@ static void ReverseExtAddress(otExtAddress *aReversed, const otExtAddress *aOrig
     }
 }
 
+static inline uint8_t getIidFromFrame(const otRadioFrame *aFrame)
+{
+    uint8_t iid = 0;
+    OT_UNUSED_VARIABLE(aFrame);
+#if OPENTHREAD_RADIO && OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE == 1
+    otPanId destPanId;
+
+    destPanId = otMacGetDstPanId(aFrame);
+    if (destPanId == RADIO_BCAST_PANID)
+    {
+        iid = RADIO_BCAST_IID;
+    }
+    else
+    {
+        iid = utilsSoftSrcMatchFindIidFromPanId(destPanId);
+    }
+#endif
+
+    return iid;
+}
+
 static bool hasFramePending(const otRadioFrame *aFrame)
 {
     bool         rval = false;
     otMacAddress src;
+    uint8_t      iid;
 
     otEXPECT_ACTION(sSrcMatchEnabled, rval = true);
     otEXPECT(otMacFrameGetSrcAddr(aFrame, &src) == OT_ERROR_NONE);
+    iid = getIidFromFrame(aFrame);
+    assert(iid != INVALID_VALUE);
 
     switch (src.mType)
     {
     case OT_MAC_ADDRESS_TYPE_SHORT:
-        rval = utilsSoftSrcMatchShortFindEntry(0, src.mAddress.mShortAddress) >= 0;
+        rval = utilsSoftSrcMatchShortFindEntry(iid, src.mAddress.mShortAddress) >= 0;
         break;
     case OT_MAC_ADDRESS_TYPE_EXTENDED:
     {
         otExtAddress extAddr;
 
         ReverseExtAddress(&extAddr, &src.mAddress.mExtAddress);
-        rval = utilsSoftSrcMatchExtFindEntry(0, &extAddr) >= 0;
+        rval = utilsSoftSrcMatchExtFindEntry(iid, &extAddr) >= 0;
         break;
     }
     default:
@@ -376,8 +409,10 @@ void otPlatRadioSetPanId(otInstance *aInstance, otPanId aPanid)
 
     assert(aInstance != NULL);
 
+    uint8_t iid = otNcpPlatGetCurCommandIid();
+
     sPanid = aPanid;
-    utilsSoftSrcMatchSetPanId(0, aPanid);
+    utilsSoftSrcMatchSetPanId(iid, aPanid);
 }
 
 void otPlatRadioSetExtendedAddress(otInstance *aInstance, const otExtAddress *aExtAddress)
@@ -1070,6 +1105,7 @@ void radioProcessFrame(otInstance *aInstance)
 {
     otError      error = OT_ERROR_NONE;
     otMacAddress macAddress;
+    uint8_t      iid;
     OT_UNUSED_VARIABLE(macAddress);
 
     sReceiveFrame.mInfo.mRxInfo.mRssi = -20;
@@ -1082,6 +1118,10 @@ void radioProcessFrame(otInstance *aInstance)
 
     otEXPECT_ACTION(otMacFrameDoesAddrMatch(&sReceiveFrame, sPanid, sShortAddress, &sExtAddress),
                     error = OT_ERROR_ABORT);
+
+    iid = getIidFromFrame(&sReceiveFrame);
+    assert(iid != INVALID_VALUE);
+    sReceiveFrame.mIid = iid;
 
 #if OPENTHREAD_CONFIG_MLE_LINK_METRICS_SUBJECT_ENABLE
     otEXPECT_ACTION(otMacFrameGetSrcAddr(&sReceiveFrame, &macAddress) == OT_ERROR_NONE, error = OT_ERROR_PARSE);

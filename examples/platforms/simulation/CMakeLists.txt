@@ -55,6 +55,7 @@ list(APPEND OT_PLATFORM_DEFINES
     "OPENTHREAD_EXAMPLES_SIMULATION=1"
     "OPENTHREAD_CONFIG_NCP_HDLC_ENABLE=1"
 )
+
 set(OT_PLATFORM_DEFINES ${OT_PLATFORM_DEFINES} PARENT_SCOPE)
 
 add_library(openthread-simulation
@@ -80,6 +81,14 @@ add_library(openthread-simulation
 find_library(LIBRT rt)
 if(LIBRT)
     target_link_libraries(openthread-simulation PRIVATE ${LIBRT})
+endif()
+
+# Enable OPENTHREAD_RADIO symbol for openthread-simulation library in case of NCP/RCP apps
+# as it is needed by radio.c
+if(OT_APP_NCP OR OT_APP_RCP)
+    if(OT_MULTIPAN_RCP)
+        target_compile_definitions(openthread-simulation PRIVATE "OPENTHREAD_RADIO=1")
+    endif()
 endif()
 
 target_link_libraries(openthread-simulation PRIVATE

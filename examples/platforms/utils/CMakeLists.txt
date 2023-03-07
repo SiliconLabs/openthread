@@ -36,6 +36,14 @@ add_library(openthread-platform-utils OBJECT
     soft_source_match_table.c
 )
 
+# Enable OPENTHREAD_RADIO symbol for openthread-platform-utils library in case of NCP/RCP apps
+# as it is needed by soft_source_match_table.c
+if(OT_APP_NCP OR OT_APP_RCP)
+    if(OT_MULTIPAN_RCP)
+        target_compile_definitions(openthread-platform-utils PRIVATE "OPENTHREAD_RADIO=1")
+    endif()
+endif()
+
 target_compile_definitions(openthread-platform-utils PRIVATE
     $<TARGET_PROPERTY:ot-config,INTERFACE_COMPILE_DEFINITIONS>
 )

@@ -84,7 +84,15 @@ proc spawn_node {id {type ""} {radio_url ""}} {
         set gcov_prefix "ot-run/$argv0/ot-gcda.$id"
     }
 
-    switch -regexp ${type} {
+    switch -regex ${type} {
+        {rcp-mp} {
+            spawn /usr/bin/env GCOV_PREFIX=$gcov_prefix $::env(OT_POSIX_MP_APPS)/ot-cli $radio_url
+            send "factoryreset\n"
+            wait_for "state" "disabled"
+            expect_line "Done"
+            send "routerselectionjitter 1\n"
+            expect_line "Done"
+        }
         {rcp|rcp-cli} {
             spawn /usr/bin/env GCOV_PREFIX=$gcov_prefix $::env(OT_POSIX_APPS)/ot-cli $radio_url
             send "factoryreset\n"

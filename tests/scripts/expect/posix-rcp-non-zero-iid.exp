@@ -1,0 +1,83 @@
+#!/usr/bin/expect -f
+#
+#  Copyright (c) 2023, The OpenThread Authors.
+#  All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#  3. Neither the name of the copyright holder nor the
+#     names of its contributors may be used to endorse or promote products
+#     derived from this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+#  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+#
+
+# This test uses posix ot-cli and ot-rcp app with non-zero spinel iid support.
+# There are three nodes in this test (leader, rx-on-when-idle and rx-off-when-idle )
+# and each node spawn with non-zero iid.
+# This test perform energy scan, form and join the Thread network followed by ping
+# operation from a leader to each of the node.
+
+source "tests/scripts/expect/_common.exp"
+source "tests/scripts/expect/_multinode.exp"
+
+set is_mp_enabled $::env(MULTIPAN_RCP)
+
+# Skip the test if MULTIPAN_RCP is not enabled.
+if {${is_mp_enabled} == 0} {
+  exit 77
+}
+
+# spawn ot-cli and ot-rcp with non-zero spinel iid(=1) and energy scan enabled.
+spawn_node 1 "rcp-mp" "spinel+hdlc+forkpty://$::env(OT_SIMULATION_MP_APPS)/ncp/ot-rcp?iid=1&forkpty-arg=1&forkpty-arg=-E&no-reset=1"
+
+# Perform energy scan on node_1.
+send "ifconfig up\n"
+expect_line "Done"
+send "scan energy 0\n"
+expect_line "Done"
+send "scan energy 100\n"
+expect_line "Done"
+sleep 2
+
+# spawn node with spinel iid set to 2.
+spawn_node 2  "rcp-mp" "spinel+hdlc+forkpty://$::env(OT_SIMULATION_MP_APPS)/ncp/ot-rcp?iid=2&forkpty-arg=2"
+
+# Form a Thread network on node_1 as a leader and join node_2
+# as rx-on-when-idle and ping node_2.
+setup_two_nodes "rn" false
+switch_node 2
+set addr_2 [get_ipaddr mleid]
+switch_node 1
+send "ping $addr_2\n"
+expect "16 bytes from $addr_2: icmp_seq=1"
+
+# spawn node with spinel iid set to 3.
+spawn_node 3 "rcp-mp" "spinel+hdlc+forkpty://$::env(OT_SIMULATION_MP_APPS)/ncp/ot-rcp?iid=3&forkpty-arg=3"
+
+# Join node_3 as rx-off-when-idle and ping node_3
+setup_node 3 "-" "child"
+switch_node 3
+set addr_3 [get_ipaddr mleid]
+send "pollperiod 1000\n"
+expect_line "Done"
+switch_node 1
+send "ping $addr_3\n"
+expect "16 bytes from $addr_3: icmp_seq=2"
+
+dispose_all
