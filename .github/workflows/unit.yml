@@ -83,7 +83,7 @@ jobs:
     - name: Test Simulation
       run: cd build/simulation && ninja test
     - name: Build Multipan Simulation
-      run: ./script/cmake-build simulation -DOT_MULTIPAN_RCP=ON
+      run: ./script/cmake-build simulation -DOT_MULTIPAN_RCP=ON -DOT_APP_CLI=OFF
     - name: Test Multipan Simulation
       run: cd build/simulation && ninja test
     - name: Build POSIX

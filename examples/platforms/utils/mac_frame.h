@@ -176,6 +176,17 @@ otError otMacFrameGetDstAddr(const otRadioFrame *aFrame, otMacAddress *aMacAddre
 uint8_t otMacFrameGetSequence(const otRadioFrame *aFrame);
 
 /**
+ * Get destination PAN ID.
+ *
+ * @param[in]   aFrame          A pointer to the frame.
+ *
+ * @retval  The destination PAN ID of the frame. Returns 0xFFFF if destination PAN ID
+ *          is not present.
+ *
+ */
+otPanId otMacGetDstPanId(const otRadioFrame *aFrame);
+
+/**
  * This function performs AES CCM on the frame which is going to be sent.
  *
  * @param[in]  aFrame       A pointer to the MAC frame buffer that is going to be sent.

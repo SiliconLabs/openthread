@@ -144,6 +144,19 @@ uint8_t otMacFrameGetSequence(const otRadioFrame *aFrame)
     return static_cast<const Mac::Frame *>(aFrame)->GetSequence();
 }
 
+otPanId otMacGetDstPanId(const otRadioFrame *aFrame)
+{
+    otPanId aPanId = 0xFFFF;
+
+    if (static_cast<const Mac::RxFrame *>(aFrame)->IsDstPanIdPresent())
+    {
+        SuccessOrExit(static_cast<const Mac::RxFrame *>(aFrame)->GetDstPanId(aPanId));
+    }
+
+exit:
+    return aPanId;
+}
+
 void otMacFrameProcessTransmitAesCcm(otRadioFrame *aFrame, const otExtAddress *aExtAddress)
 {
     static_cast<Mac::TxFrame *>(aFrame)->ProcessTransmitAesCcm(*static_cast<const Mac::ExtAddress *>(aExtAddress));
