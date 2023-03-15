@@ -33,27 +33,59 @@ set(COMMON_INCLUDES
     ${PROJECT_SOURCE_DIR}/examples/platforms/simulation
 )
 
+set(COMMON_INCLUDES_RCP
+    ${COMMON_INCLUDES}
+    ${PROJECT_SOURCE_DIR}/src/core/radio
+)
+
 set(COMMON_COMPILE_OPTIONS
     -DOPENTHREAD_FTD=1
     -DOPENTHREAD_SPINEL_CONFIG_OPENTHREAD_MESSAGE_ENABLE=1
 )
 
-add_library(ot-test-platform
+set(COMMON_COMPILE_OPTIONS_RCP
+    -DOPENTHREAD_RADIO=1
+    -DOPENTHREAD_SPINEL_CONFIG_OPENTHREAD_MESSAGE_ENABLE=1
+    -DOPENTHREAD_CONFIG_PLATFORM_UDP_ENABLE=0
+)
+
+add_library(ot-test-platform-ftd
     test_platform.cpp
     test_util.cpp
 )
 
-target_include_directories(ot-test-platform
+add_library(ot-test-platform-rcp
+    test_platform.cpp
+    test_util.cpp
+)
+
+target_include_directories(ot-test-platform-ftd
     PRIVATE
         ${COMMON_INCLUDES}
 )
 
-target_compile_options(ot-test-platform
+target_include_directories(ot-test-platform-rcp
+    PRIVATE
+	${COMMON_INCLUDES}
+)
+
+target_compile_options(ot-test-platform-ftd
     PRIVATE
         ${COMMON_COMPILE_OPTIONS}
 )
 
-target_link_libraries(ot-test-platform
+target_compile_options(ot-test-platform-rcp
+    PRIVATE
+        ${COMMON_COMPILE_OPTIONS_RCP}
+)
+
+target_link_libraries(ot-test-platform-ftd
+    PRIVATE
+        ot-config
+        ${OT_MBEDTLS}
+)
+
+target_link_libraries(ot-test-platform-rcp
     PRIVATE
         ot-config
         ${OT_MBEDTLS}
@@ -62,12 +94,19 @@ target_link_libraries(ot-test-platform
 set(COMMON_LIBS
     openthread-spinel-ncp
     openthread-hdlc
-    ot-test-platform
+    ot-test-platform-ftd
     openthread-ftd
-    ot-test-platform
+    ot-test-platform-ftd
     ${OT_MBEDTLS}
     ot-config
     openthread-ftd
+)
+
+set(COMMON_LIBS_RCP
+    ot-test-platform-rcp
+    openthread-rcp
+    ${OT_MBEDTLS}
+    ot-config
 )
 
 add_executable(ot-test-aes
@@ -685,6 +724,41 @@ target_link_libraries(ot-test-multicast-listeners-table
 )
 
 add_test(NAME ot-test-multicast-listeners-table COMMAND ot-test-multicast-listeners-table)
+
+add_executable(ot-test-multipan-rcp
+    test_multipan_rcp.cpp
+)
+
+target_include_directories(ot-test-multipan-rcp
+    PRIVATE
+        ${COMMON_INCLUDES_RCP}
+)
+
+target_compile_options(ot-test-multipan-rcp
+    PRIVATE
+        ${COMMON_COMPILE_OPTIONS_RCP}
+)
+
+if(OT_MULTIPAN_RCP)
+    target_compile_definitions(ot-test-multipan-rcp
+        PRIVATE
+            "OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE=1"
+    )
+endif()
+
+if(OT_POSIX_MAX_POWER_TABLE)
+    target_compile_definitions(ot-test-platform-rcp
+        PRIVATE
+            "OPENTHREAD_POSIX_CONFIG_MAX_POWER_TABLE_ENABLE=1"
+    )
+endif()
+
+target_link_libraries(ot-test-multipan-rcp
+    PRIVATE
+        ${COMMON_LIBS_RCP}
+)
+
+add_test(NAME ot-test-multipan-rcp COMMAND ot-test-multipan-rcp)
 
 add_test(NAME ot-test-nat64 COMMAND ot-test-nat64)
 
