@@ -636,11 +636,12 @@ protected:
     PendingCommandEntry mPendingCommandQueue[kPendingCommandQueueSize];
 
     otError     EnqueuePendingCommand(PendingCommandType aType, uint8_t aHeader, uint8_t aScanChannel);
-    otError     HandlePendingTransmit(PendingCommandEntry *entry);
-    otError     HandlePendingEnergyScan(PendingCommandEntry *entry);
+    otError     HandlePendingTransmit(PendingCommandEntry *aEntry);
+    otError     HandlePendingEnergyScan(PendingCommandEntry *aEntry);
     static void HandlePendingCommands(Tasklet &aTasklet);
     void        HandlePendingCommands(void);
     size_t      GetPendingCommandQueueSize(void);
+    otError     LoadPendingEntryToTxFrame(const PendingCommandEntry *aEntry);
 #endif // OPENTHREAD_RADIO || OPENTHREAD_CONFIG_LINK_RAW_ENABLE
 #endif // OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
 

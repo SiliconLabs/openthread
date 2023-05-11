@@ -712,7 +712,7 @@ uint8_t NcpBase::GetWrappedQueueIndex(uint8_t aPosition, uint8_t aQueueSize)
         aPosition -= aQueueSize;
     }
 
-    return aPosition % aQueueSize;
+    return aPosition;
 }
 
 otError NcpBase::EnqueueResponse(uint8_t aHeader, ResponseType aType, unsigned int aPropKeyOrStatus)
@@ -887,38 +887,65 @@ exit:
     return error;
 }
 
-otError NcpBase::HandlePendingTransmit(PendingCommandEntry *entry)
+otError NcpBase::LoadPendingEntryToTxFrame(const PendingCommandEntry *aEntry)
 {
     otError       error = OT_ERROR_NONE;
     otRadioFrame *frame;
 
-    mCurTransmitTID = entry->mTid;
-    mCurTransmitIID = entry->mIid;
-    VerifyOrExit(otLinkRawIsEnabled(mInstance), error = OT_ERROR_INVALID_STATE);
     frame = otLinkRawGetTransmitBuffer(mInstance);
     VerifyOrExit(frame != nullptr, error = OT_ERROR_NO_BUFS);
-    memcpy(frame, &entry->mTransmitFrame, sizeof(*frame));
-    frame->mIid = entry->mIid;
+
+    VerifyOrExit(aEntry->mTransmitFrame.mLength <= OT_RADIO_FRAME_MAX_SIZE, error = OT_ERROR_PARSE);
+    frame->mLength = aEntry->mTransmitFrame.mLength;
+    memcpy(frame->mPsdu, aEntry->mTransmitFrame.mPsdu, frame->mLength);
+
+    frame->mChannel   = aEntry->mTransmitFrame.mChannel;
+    frame->mRadioType = aEntry->mTransmitFrame.mRadioType;
+    frame->mIid       = aEntry->mIid;
+
+    frame->mInfo.mTxInfo.mTxDelay              = aEntry->mTransmitFrame.mInfo.mTxInfo.mTxDelay;
+    frame->mInfo.mTxInfo.mTxDelayBaseTime      = aEntry->mTransmitFrame.mInfo.mTxInfo.mTxDelayBaseTime;
+    frame->mInfo.mTxInfo.mMaxCsmaBackoffs      = aEntry->mTransmitFrame.mInfo.mTxInfo.mMaxCsmaBackoffs;
+    frame->mInfo.mTxInfo.mMaxFrameRetries      = aEntry->mTransmitFrame.mInfo.mTxInfo.mMaxFrameRetries;
+    frame->mInfo.mTxInfo.mRxChannelAfterTxDone = aEntry->mTransmitFrame.mInfo.mTxInfo.mRxChannelAfterTxDone;
+    frame->mInfo.mTxInfo.mIsHeaderUpdated      = aEntry->mTransmitFrame.mInfo.mTxInfo.mIsHeaderUpdated;
+    frame->mInfo.mTxInfo.mIsARetx              = aEntry->mTransmitFrame.mInfo.mTxInfo.mIsARetx;
+    frame->mInfo.mTxInfo.mCsmaCaEnabled        = aEntry->mTransmitFrame.mInfo.mTxInfo.mCsmaCaEnabled;
+    frame->mInfo.mTxInfo.mCslPresent           = aEntry->mTransmitFrame.mInfo.mTxInfo.mCslPresent;
+    frame->mInfo.mTxInfo.mIsSecurityProcessed  = aEntry->mTransmitFrame.mInfo.mTxInfo.mIsSecurityProcessed;
+
+exit:
+    return error;
+}
+
+otError NcpBase::HandlePendingTransmit(PendingCommandEntry *aEntry)
+{
+    otError error = OT_ERROR_NONE;
+
+    mCurTransmitTID = aEntry->mTid;
+    mCurTransmitIID = aEntry->mIid;
+    VerifyOrExit(otLinkRawIsEnabled(mInstance), error = OT_ERROR_INVALID_STATE);
+    SuccessOrExit(error = LoadPendingEntryToTxFrame(aEntry));
     SuccessOrExit(error = otLinkRawTransmit(mInstance, &NcpBase::LinkRawTransmitDone));
 
 exit:
     if (error != OT_ERROR_NONE)
     {
-        LinkRawTransmitDone(&entry->mTransmitFrame, nullptr, error);
+        LinkRawTransmitDone(&aEntry->mTransmitFrame, nullptr, error);
     }
     return error;
 }
 
-otError NcpBase::HandlePendingEnergyScan(PendingCommandEntry *entry)
+otError NcpBase::HandlePendingEnergyScan(PendingCommandEntry *aEntry)
 {
     otError error = OT_ERROR_NONE;
 
     VerifyOrExit(mCurScanChannel == kInvalidScanChannel, error = OT_ERROR_INVALID_STATE);
 
-    mCurScanChannel = static_cast<int8_t>(entry->mScanChannel);
-    mCurTransmitIID = entry->mIid;
+    mCurScanChannel = static_cast<int8_t>(aEntry->mScanChannel);
+    mCurTransmitIID = aEntry->mIid;
 
-    SuccessOrExit(error = otLinkRawEnergyScan(mInstance, entry->mScanChannel, mScanPeriod, LinkRawEnergyScanDone));
+    SuccessOrExit(error = otLinkRawEnergyScan(mInstance, aEntry->mScanChannel, mScanPeriod, LinkRawEnergyScanDone));
 
 exit:
     if (error != OT_ERROR_NONE)

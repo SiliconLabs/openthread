@@ -766,40 +766,35 @@ target_link_libraries(ot-test-multicast-listeners-table
 
 add_test(NAME ot-test-multicast-listeners-table COMMAND ot-test-multicast-listeners-table)
 
-add_executable(ot-test-multipan-rcp-pending-queue
-    test_multipan_rcp_pending_queue.cpp
-)
-
-target_include_directories(ot-test-multipan-rcp-pending-queue
-    PRIVATE
-        ${COMMON_INCLUDES_RCP}
-)
-
-target_compile_options(ot-test-multipan-rcp-pending-queue
-    PRIVATE
-        ${COMMON_COMPILE_OPTIONS_RCP}
-)
-
-if(OT_MULTIPAN_RCP)
-    target_compile_definitions(ot-test-multipan-rcp-pending-queue
-        PRIVATE
-            "OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE=1"
+if(OT_RCP)
+    add_executable(ot-test-multipan-rcp-pending-queue
+        test_multipan_rcp_pending_queue.cpp
     )
-endif()
 
-if(OT_POSIX_MAX_POWER_TABLE)
-    target_compile_definitions(ot-test-platform-rcp
+    target_include_directories(ot-test-multipan-rcp-pending-queue
         PRIVATE
-            "OPENTHREAD_POSIX_CONFIG_MAX_POWER_TABLE_ENABLE=1"
+            ${COMMON_INCLUDES_RCP}
     )
-endif()
 
-target_link_libraries(ot-test-multipan-rcp-pending-queue
-    PRIVATE
-        ${COMMON_LIBS_RCP}
-)
+    target_compile_options(ot-test-multipan-rcp-pending-queue
+        PRIVATE
+            ${COMMON_COMPILE_OPTIONS_RCP}
+    )
 
-add_test(NAME ot-test-multipan-rcp-pending-queue COMMAND ot-test-multipan-rcp-pending-queue)
+    if(OT_MULTIPAN_RCP)
+        target_compile_definitions(ot-test-multipan-rcp-pending-queue
+            PRIVATE
+                "OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE=1"
+        )
+    endif()
+
+    target_link_libraries(ot-test-multipan-rcp-pending-queue
+        PRIVATE
+            ${COMMON_LIBS_RCP}
+    )
+
+    add_test(NAME ot-test-multipan-rcp-pending-queue COMMAND ot-test-multipan-rcp-pending-queue)
+ endif()
 
 add_test(NAME ot-test-nat64 COMMAND ot-test-nat64)
 
