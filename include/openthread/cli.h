@@ -149,15 +149,11 @@ void otCliAppendResult(otError aError);
 void otCliPlatLogv(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat, va_list aArgs);
 
 #if OPENTHREAD_CONFIG_CLI_VENDOR_COMMANDS_ENABLE && OPENTHREAD_CONFIG_CLI_MAX_USER_CMD_ENTRIES > 1
-   /**
-    * Callback to allow vendor specific commands to be added to the user command table.
-    *
-    * @param[in]  aContext       @p The context passed to the handler.
-    *
-    * @retval OT_ERROR_NONE    Successfully updated command table with commands from @p aUserCommands.
-    * @retval OT_ERROR_FAILED  Maximum number of command entries have already been set.
-    */
-   otError otCliVendorSetUserCommands(void *aContext);
+/**
+ * Callback to allow vendor specific commands to be added to the user command table.
+ *
+ */
+void otCliVendorSetUserCommands(void);
 
 #endif // OPENTHREAD_ENABLE_NCP_VENDOR_HOOK
 

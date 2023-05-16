@@ -129,10 +129,6 @@ pseudo_reset:
     IgnoreError(otCliSetUserCommands(kCommands, OT_ARRAY_LENGTH(kCommands), instance));
 #endif
 
-#if OPENTHREAD_CONFIG_CLI_VENDOR_COMMANDS_ENABLE && OPENTHREAD_CONFIG_CLI_MAX_USER_CMD_ENTRIES > 1
-    IgnoreError(otCliVendorSetUserCommands(instance));
-#endif
-
     while (!otSysPseudoResetWasRequested())
     {
         otTaskletsProcess(instance);

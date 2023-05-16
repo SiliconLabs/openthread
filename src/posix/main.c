@@ -382,10 +382,6 @@ int main(int argc, char *argv[])
 #endif
     IgnoreError(otCliSetUserCommands(kCommands, OT_ARRAY_LENGTH(kCommands), instance));
 
-#if OPENTHREAD_CONFIG_CLI_VENDOR_COMMANDS_ENABLE && OPENTHREAD_CONFIG_CLI_MAX_USER_CMD_ENTRIES > 1
-    IgnoreError(otCliVendorSetUserCommands(instance));
-#endif
-
     while (true)
     {
         otSysMainloopContext mainloop;

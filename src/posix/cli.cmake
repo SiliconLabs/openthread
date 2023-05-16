@@ -43,16 +43,6 @@ target_compile_options(ot-cli PRIVATE
     ${OT_CFLAGS}
 )
 
-set(OT_CLI_VENDOR_EXTENSION "" CACHE STRING "Path to CMake file to define and link cli vendor extension")
-if(OT_CLI_VENDOR_EXTENSION)
-  set(OT_CLI_VENDOR_TARGET "" CACHE STRING "Name of vendor ext CMake target to link with cli app")
-  include(${OT_CLI_VENDOR_EXTENSION})
-  if(OT_CLI_VENDOR_TARGET)
-    target_link_libraries(ot-cli PRIVATE ${OT_CLI_VENDOR_TARGET})
-  endif()
-  target_compile_definitions(ot-config INTERFACE "OPENTHREAD_CONFIG_CLI_VENDOR_COMMANDS_ENABLE=1")
-endif()
-
 target_link_libraries(ot-cli PRIVATE
     openthread-cli-ftd
     openthread-posix

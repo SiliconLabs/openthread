@@ -56,9 +56,5 @@ if(OT_LINKER_MAP)
     endif()
 endif()
 
-if(OT_CLI_VENDOR_TARGET)
-  target_link_libraries(ot-cli-ftd PRIVATE ${OT_CLI_VENDOR_TARGET})
-endif()
-
 install(TARGETS ot-cli-ftd
     DESTINATION bin)
