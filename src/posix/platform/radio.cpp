@@ -87,15 +87,31 @@ Radio::Radio(const char *aUrl)
 
 void Radio::Init(void)
 {
-    bool resetRadio             = !mRadioUrl.HasParam("no-reset");
-    bool skipCompatibilityCheck = mRadioUrl.HasParam("skip-rcp-compatibility-check");
+    bool         resetRadio             = (mRadioUrl.GetValue("no-reset") == nullptr);
+    bool         skipCompatibilityCheck = (mRadioUrl.GetValue("skip-rcp-compatibility-check") != nullptr);
+    spinel_iid_t iidList[Spinel::kSpinelHeaderMaxNumIid];
+    struct ot::Spinel::RadioSpinelCallbacks callbacks;
+
+    memset(&callbacks, 0, sizeof(callbacks));
+#if OPENTHREAD_CONFIG_DIAG_ENABLE
+    callbacks.mDiagReceiveDone  = otPlatDiagRadioReceiveDone;
+    callbacks.mDiagTransmitDone = otPlatDiagRadioTransmitDone;
+#endif // OPENTHREAD_CONFIG_DIAG_ENABLE
+    callbacks.mEnergyScanDone = otPlatRadioEnergyScanDone;
+    callbacks.mReceiveDone    = otPlatRadioReceiveDone;
+    callbacks.mTransmitDone   = otPlatRadioTxDone;
+    callbacks.mTxStarted      = otPlatRadioTxStarted;
+
+    GetIidListFromRadioUrl(iidList);
 
 #if OPENTHREAD_POSIX_VIRTUAL_TIME
     VirtualTimeInit();
 #endif
 
+    sRadioSpinel.SetCallbacks(callbacks);
     SuccessOrDie(sRadioSpinel.GetSpinelInterface().Init(mRadioUrl));
-    sRadioSpinel.Init(resetRadio, skipCompatibilityCheck);
+    sRadioSpinel.Init(resetRadio, skipCompatibilityCheck, iidList, OT_ARRAY_LENGTH(iidList));
+    otLogDebgPlat("instance init:%p - iid = %d", (void *)&sRadioSpinel, iidList[0]);
 
     ProcessRadioUrl(mRadioUrl);
 }
@@ -209,6 +225,53 @@ exit:
 }
 
 void *Radio::GetSpinelInstance(void) { return &sRadioSpinel; }
+
+void Radio::GetIidListFromRadioUrl(spinel_iid_t (&aIidList)[Spinel::kSpinelHeaderMaxNumIid])
+{
+    const char *iidString;
+    const char *iidListString;
+
+    memset(aIidList, SPINEL_HEADER_INVALID_IID, sizeof(aIidList));
+
+    iidString     = (mRadioUrl.GetValue("iid"));
+    iidListString = (mRadioUrl.GetValue("iid-list"));
+
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    // First entry to the aIidList must be the IID of the host application.
+    VerifyOrDie(iidString != nullptr, OT_EXIT_INVALID_ARGUMENTS);
+    aIidList[0] = static_cast<spinel_iid_t>(atoi(iidString));
+
+    if (iidListString != nullptr)
+    {
+        // Convert string to an array of integers.
+        // Integer i is for traverse the iidListString.
+        // Integer j is for aIidList array offset location.
+        // First entry of aIidList is for host application iid hence j start from 1.
+        for (uint8_t i = 0, j = 1; iidListString[i] != '\0' && j < Spinel::kSpinelHeaderMaxNumIid; i++)
+        {
+            if (iidListString[i] == ',')
+            {
+                j++;
+                continue;
+            }
+
+            if (iidListString[i] < '0' || iidListString[i] > '9')
+            {
+                DieNow(OT_EXIT_INVALID_ARGUMENTS);
+            }
+            else
+            {
+                aIidList[j] = iidListString[i] - '0';
+                VerifyOrDie(aIidList[j] < Spinel::kSpinelHeaderMaxNumIid, OT_EXIT_INVALID_ARGUMENTS);
+            }
+        }
+    }
+#else  // !OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    VerifyOrDie(iidString == nullptr, OT_EXIT_INVALID_ARGUMENTS);
+    VerifyOrDie(iidListString == nullptr, OT_EXIT_INVALID_ARGUMENTS);
+    aIidList[0] = 0;
+#endif // OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+}
 
 } // namespace Posix
 } // namespace ot
