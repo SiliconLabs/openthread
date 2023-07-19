@@ -68,6 +68,14 @@ endif()
 
 if(OT_RCP)
     include(radio.cmake)
+    if(OT_MULTIPAN_RCP)
+        target_compile_options(ot-config-radio
+            INTERFACE
+                "-DOPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE=1"
+                "-DOPENTHREAD_CONFIG_LOG_PREPEND_UPTIME=0" # Not supporting multiple instances
+                "-DOPENTHREAD_CONFIG_MULTIPLE_STATIC_INSTANCE_ENABLE=1"
+        )
+    endif()
 endif()
 
 set_property(SOURCE ncp_base_mtd.cpp

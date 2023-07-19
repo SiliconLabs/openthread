@@ -184,6 +184,14 @@ public:
 
     public:
         /**
+         * This callback method handles a "Switchover Done" event from radio platform.
+         *
+         * @param[in]  aSuccess   Informs if a switchover was successful or not.
+         *
+         */
+        void HandleSwitchoverDone(bool aSuccess);
+
+        /**
          * This callback method handles a "Receive Done" event from radio platform.
          *
          * @param[in]  aFrame    A pointer to the received frame or `nullptr` if the receive operation failed.

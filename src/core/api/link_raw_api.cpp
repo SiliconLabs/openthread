@@ -49,6 +49,11 @@
 
 using namespace ot;
 
+void otLinkRawSetSwitchoverDone(otInstance *aInstance, otLinkRawSwitchoverDone aCallback)
+{
+    AsCoreType(aInstance).Get<Mac::LinkRaw>().SetSwitchoverDone(aCallback);
+}
+
 otError otLinkRawSetReceiveDone(otInstance *aInstance, otLinkRawReceiveDone aCallback)
 {
     return AsCoreType(aInstance).Get<Mac::LinkRaw>().SetReceiveDone(aCallback);

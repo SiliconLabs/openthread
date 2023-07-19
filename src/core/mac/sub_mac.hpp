@@ -125,6 +125,14 @@ public:
         explicit Callbacks(Instance &aInstance);
 
         /**
+         * This method notifies user of `SubMac` of a radio switchover completion.
+         *
+         * @param[in]  aSuccess  Informs if the switchover was successful or not.
+         *
+         */
+        void SwitchoverDone(bool aSuccess);
+
+        /**
          * Notifies user of `SubMac` of a received frame.
          *
          * @param[in]  aFrame    A pointer to the received frame or `nullptr` if the receive operation failed.
@@ -619,6 +627,7 @@ private:
     void BeginTransmit(void);
     void SampleRssi(void);
 
+    void HandleSwitchoverDone(bool aSuccess);
     void HandleReceiveDone(RxFrame *aFrame, Error aError);
     void HandleTransmitStarted(TxFrame &aFrame);
     void HandleTransmitDone(TxFrame &aFrame, RxFrame *aAckFrame, Error aError);

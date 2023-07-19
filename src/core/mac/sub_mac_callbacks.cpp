@@ -51,6 +51,12 @@ SubMac::Callbacks::Callbacks(Instance &aInstance)
 
 #if OPENTHREAD_FTD || OPENTHREAD_MTD
 
+void SubMac::Callbacks::SwitchoverDone(bool aSuccess)
+{
+    OT_UNUSED_VARIABLE(aSuccess);
+    // do nothing for now - not supported
+}
+
 void SubMac::Callbacks::ReceiveDone(RxFrame *aFrame, Error aError)
 {
 #if OPENTHREAD_CONFIG_LINK_RAW_ENABLE
@@ -112,6 +118,8 @@ void SubMac::Callbacks::FrameCounterUsed(uint32_t aFrameCounter)
 }
 
 #elif OPENTHREAD_RADIO
+
+void SubMac::Callbacks::SwitchoverDone(bool aSuccess) { Get<LinkRaw>().InvokeSwitchoverDone(aSuccess); }
 
 void SubMac::Callbacks::ReceiveDone(RxFrame *aFrame, Error aError) { Get<LinkRaw>().InvokeReceiveDone(aFrame, aError); }
 

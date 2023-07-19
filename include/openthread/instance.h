@@ -103,6 +103,22 @@ otInstance *otInstanceInit(void *aInstanceBuffer, size_t *aInstanceBufferSize);
 otInstance *otInstanceInitSingle(void);
 
 /**
+ * This static method initializes the OpenThread instance.
+ *
+ * This function initializes OpenThread and prepares it for subsequent OpenThread API calls. This function must be
+ * called before any other calls to OpenThread. This method utilizes static buffer to initialize the OpenThread
+ * instance.
+ *
+ * This function is available and can only be used when support for multiple OpenThread static instances is enabled.
+ *
+ * @param[in] aIdx The index of the OpenThread instance to initialize.
+ *
+ * @returns  A pointer to the new OpenThread instance.
+ *
+ */
+otInstance *otInstanceInitMultiple(uint8_t aIdx);
+
+/**
  * Gets the instance identifier.
  *
  * The instance identifier is set to a random value when the instance is constructed, and then its value will not

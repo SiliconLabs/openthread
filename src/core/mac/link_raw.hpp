@@ -95,6 +95,14 @@ public:
     Error SetReceiveDone(otLinkRawReceiveDone aCallback);
 
     /**
+     * This method sets the callback to call when the radio switchover is complete.
+     *
+     * @param[in]  aCallback  A pointer to a function called to call.
+     *
+     */
+    void SetSwitchoverDone(otLinkRawSwitchoverDone aCallback);
+
+    /**
      * Returns the capabilities of the raw link-layer.
      *
      * @returns The radio capability bit vector.
@@ -110,6 +118,14 @@ public:
      *
      */
     Error Receive(void);
+
+    /**
+     * This method invokes the mSwitchoverDone, if set.
+     *
+     * @param[in]  aSuccess  Informs if a switchover was successful or not
+     *
+     */
+    void InvokeSwitchoverDone(bool aSuccess);
 
     /**
      * Invokes the mReceiveDoneCallback, if set.
@@ -307,6 +323,7 @@ private:
     uint8_t                 mReceiveChannel;
     PanId                   mPanId;
     otLinkRawReceiveDone    mReceiveDoneCallback;
+    otLinkRawSwitchoverDone mSwitchoverDoneCallback;
     otLinkRawTransmitDone   mTransmitDoneCallback;
     otLinkRawEnergyScanDone mEnergyScanDoneCallback;
 

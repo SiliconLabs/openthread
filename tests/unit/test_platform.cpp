@@ -49,6 +49,9 @@ ot::Instance *testInitInstance(void)
     otInstance *instance = nullptr;
 
 #if OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE
+#if OPENTHREAD_CONFIG_MULTIPLE_STATIC_INSTANCE_ENABLE
+    instance = otInstanceInitMultiple(0);
+#else
     size_t   instanceBufferLength = 0;
     uint8_t *instanceBuffer       = nullptr;
 
@@ -62,6 +65,7 @@ ot::Instance *testInitInstance(void)
 
     // Initialize OpenThread with the buffer
     instance = otInstanceInit(instanceBuffer, &instanceBufferLength);
+#endif
 #else
     instance = otInstanceInitSingle();
 #endif

@@ -331,6 +331,8 @@ exit:
 }
 #endif
 
+void SubMac::HandleSwitchoverDone(bool aSuccess) { mCallbacks.SwitchoverDone(aSuccess); }
+
 void SubMac::HandleReceiveDone(RxFrame *aFrame, Error aError)
 {
     if (mPcapCallback.IsSet() && (aFrame != nullptr) && (aError == kErrorNone))

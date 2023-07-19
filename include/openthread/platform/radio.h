@@ -506,6 +506,44 @@ void otPlatRadioSetExtendedAddress(otInstance *aInstance, const otExtAddress *aE
 void otPlatRadioSetShortAddress(otInstance *aInstance, otShortAddress aShortAddress);
 
 /**
+ * Get currently active radio interface.
+ *
+ * @param[in]  aInstance      The OpenThread instance structure.
+ * @param[out] aRadioInterface   Pointer to the variable for storing radio interface index
+
+ * @retval  OT_ERROR_NONE               Successfully got the property.
+ * @retval  OT_ERROR_NOT_IMPLEMENTED    Failed due lack of the support in radio or platform supprts
+ *                                      all interfaces simultaneously
+ *                                      (i.e. no active/inactive interface concept in the platform level).
+ *
+ */
+otError otPlatGetActiveMultipanInterface(otInstance *aInstance, uint8_t *aRadioInterface);
+
+/**
+ * Select active radio interface.
+ *
+ * This function allows selecting currently active radio interface on platforms that do not support parallel
+ * communication on multiple interfaces. I.e. if more than one interface is in receive state calling
+ * otPlatSetActiveMultipanInterface guarantees that specified interface will be the one receiving. This function returns
+ * if the request was received properly. After interface switching is complete platform should call
+ * otPlatRadioSwitchoverDone. Switching interfaces may take longer if aCompletePending is set true.
+ *
+ * @param[in] aInstance         The OpenThread instance structure.
+ * @param[in] aRadioInterface   Radio interface to make active.
+ * @param[in] aCompletePending  True if ongoing radio operation should complete before interface switch (Soft switch),
+ * false for force switch.
+ *
+ * @retval  OT_ERROR_NONE               Successfully set the property.
+ * @retval  OT_ERROR_BUSY               Failed due to another operation on going.
+ * @retval  OT_ERROR_NOT_IMPLEMENTED    Failed due to lack of support in radio for the given interface id or
+ *                                      platform supprts all interfaces simultaneously
+ *                                      (i.e. no active/inactive interface concept in the platform level)
+ * @retval  OT_ERROR_ALREADY            Given interface is already active.
+ *
+ */
+otError otPlatSetActiveMultipanInterface(otInstance *aInstance, uint8_t aRadioInterface, bool aCompletePending);
+
+/**
  * Get the radio's transmit power in dBm.
  *
  * @note The transmit power returned will be no larger than the power specified in the max power table for
@@ -797,6 +835,18 @@ extern void otPlatRadioReceiveDone(otInstance *aInstance, otRadioFrame *aFrame, 
  *
  */
 extern void otPlatDiagRadioReceiveDone(otInstance *aInstance, otRadioFrame *aFrame, otError aError);
+
+/**
+ * The radio driver completed the interface switching procedure.
+ *
+ * Should be invoked immediately after processing otPlatSetMultipanInterface if no delay is needed or after interfaces
+ * switch is fully complete if some longer radio operations need to complete first.
+ *
+ * @param[in]  aInstance The OpenThread instance structure.
+ * @param[in]  aSuccess  True if successfully switched the interfaces, false if switching failed.
+ *
+ */
+extern void otPlatRadioSwitchoverDone(otInstance *aInstance, bool aSuccess);
 
 /**
  * Get the radio transmit frame buffer.

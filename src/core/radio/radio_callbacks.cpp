@@ -38,6 +38,8 @@
 
 namespace ot {
 
+void Radio::Callbacks::HandleSwitchoverDone(bool aSuccess) { Get<Mac::SubMac>().HandleSwitchoverDone(aSuccess); }
+
 void Radio::Callbacks::HandleReceiveDone(Mac::RxFrame *aFrame, Error aError)
 {
 #if OPENTHREAD_CONFIG_RADIO_STATS_ENABLE && (OPENTHREAD_FTD || OPENTHREAD_MTD)
