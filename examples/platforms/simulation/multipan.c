@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2016, The OpenThread Authors.
+ *  Copyright (c) 2023, The OpenThread Authors.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -26,30 +26,41 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TEST_PLATFORM_H
-#define TEST_PLATFORM_H
+#include "platform-simulation.h"
 
-#include <string.h>
+#include <errno.h>
+#include <sys/time.h>
 
-#include <openthread/config.h>
-#include <openthread/platform/alarm-milli.h>
-#include <openthread/platform/dns.h>
-#include <openthread/platform/dso_transport.h>
-#include <openthread/platform/entropy.h>
-#include <openthread/platform/logging.h>
-#include <openthread/platform/misc.h>
 #include <openthread/platform/multipan.h>
-#include <openthread/platform/radio.h>
 
-#include "common/code_utils.hpp"
-#include "common/instance.hpp"
-
-#include "test_util.h"
-
-ot::Instance *testInitInstance(void);
-#if OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE && OPENTHREAD_CONFIG_MULTIPLE_STATIC_INSTANCE_ENABLE
-ot::Instance *testInitAdditionalInstance(uint8_t id);
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+static otInstance *sActiveInstance;
 #endif
-void testFreeInstance(otInstance *aInstance);
 
-#endif // TEST_PLATFORM_H
+otError otPlatMultipanGetActiveInstance(otInstance **aInstance)
+{
+    otError error = OT_ERROR_NOT_IMPLEMENTED;
+    OT_UNUSED_VARIABLE(aInstance);
+
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    *aInstance = sActiveInstance;
+    error      = OT_ERROR_NONE;
+#endif
+
+    return error;
+}
+
+otError otPlatMultipanSetActiveInstance(otInstance *aInstance, bool aCompletePending)
+{
+    otError error = OT_ERROR_NOT_IMPLEMENTED;
+
+    OT_UNUSED_VARIABLE(aInstance);
+    OT_UNUSED_VARIABLE(aCompletePending);
+
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    sActiveInstance = aInstance;
+    error           = OT_ERROR_NONE;
+#endif
+
+    return error;
+}

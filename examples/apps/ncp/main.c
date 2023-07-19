@@ -37,6 +37,16 @@
 #include "openthread-system.h"
 
 #include "lib/platform/reset_util.h"
+
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+#if OPENTHREAD_CONFIG_MULTIPLE_STATIC_INSTANCE_ENABLE == 0
+#error "Support for multiple OpenThread static instance is disabled."
+#endif
+#define ENDPOINT_CT OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_NUM
+#else
+#define ENDPOINT_CT 1
+#endif /* OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE */
+
 /**
  * Initializes the NCP app.
  *
@@ -44,6 +54,7 @@
  *
  */
 extern void otAppNcpInit(otInstance *aInstance);
+extern void otAppNcpInitMulti(otInstance **aInstances, uint8_t count);
 
 #if OPENTHREAD_CONFIG_HEAP_EXTERNAL_ENABLE
 OT_TOOL_WEAK void *otPlatCAlloc(size_t aNum, size_t aSize) { return calloc(aNum, aSize); }
@@ -59,7 +70,9 @@ int main(int argc, char *argv[])
 
     OT_SETUP_RESET_JUMP(argv);
 
-#if OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    otInstance *instances[ENDPOINT_CT] = {NULL};
+#elif OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE
     size_t   otInstanceBufferLength = 0;
     uint8_t *otInstanceBuffer       = NULL;
 #endif
@@ -68,7 +81,16 @@ pseudo_reset:
 
     otSysInit(argc, argv);
 
-#if OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    for (int i = 0; i < ENDPOINT_CT; i++)
+    {
+        instances[i] = otInstanceInitMultiple(i);
+
+        assert(instances[i]);
+    }
+    instance = instances[0];
+#elif OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE
+
     // Call to query the buffer size
     (void)otInstanceInit(NULL, &otInstanceBufferLength);
 
@@ -83,7 +105,11 @@ pseudo_reset:
 #endif
     assert(instance);
 
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    otAppNcpInitMulti(instances, ENDPOINT_CT);
+#else
     otAppNcpInit(instance);
+#endif
 
     while (!otSysPseudoResetWasRequested())
     {
@@ -92,7 +118,7 @@ pseudo_reset:
     }
 
     otInstanceFinalize(instance);
-#if OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE
+#if OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE && !OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
     free(otInstanceBuffer);
 #endif
 
