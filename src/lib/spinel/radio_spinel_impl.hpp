@@ -2291,25 +2291,28 @@ template <typename InterfaceType> void RadioSpinel<InterfaceType>::RestoreProper
 }
 #endif // OPENTHREAD_SPINEL_CONFIG_RCP_RESTORATION_MAX_COUNT > 0
 
-template <typename InterfaceType> otError RadioSpinel<InterfaceType>::GetMultipanActiveRadioInterface(uint8_t *aValue)
+template <typename InterfaceType> otError RadioSpinel<InterfaceType>::GetMultipanActiveInterface(spinel_iid_t *aIid)
 {
-    otError error = Get(SPINEL_PROP_MULTIPAN_INTERFACE, SPINEL_DATATYPE_UINT8_S, aValue);
-    LogIfFail("Get GetMultipanActiveRadioInterface failed", error);
+    otError error = Get(SPINEL_PROP_MULTIPAN_INTERFACE, SPINEL_DATATYPE_UINT8_S, aIid);
+    LogIfFail("Get GetMultipanActiveInterface failed", error);
     return error;
 }
 
 template <typename InterfaceType>
-otError RadioSpinel<InterfaceType>::SetMultipanActiveRadioInterface(uint8_t aValue, bool aCompletePending)
+otError RadioSpinel<InterfaceType>::SetMultipanActiveInterface(spinel_iid_t aIid, bool aCompletePending)
 {
     otError error;
+    uint8_t value;
 
-    VerifyOrExit(aValue == (aValue & SPINEL_MULTIPAN_INTERFACE_ID_MASK), error = OT_ERROR_INVALID_ARGS);
+    VerifyOrExit(aIid == (aIid & SPINEL_MULTIPAN_INTERFACE_ID_MASK), error = OT_ERROR_INVALID_ARGS);
+
+    value = static_cast<uint8_t>(aIid);
     if (aCompletePending)
     {
-        aValue |= (1 << SPINEL_MULTIPAN_INTERFACE_SOFT_SWITCH_SHIFT);
+        value |= (1 << SPINEL_MULTIPAN_INTERFACE_SOFT_SWITCH_SHIFT);
     }
 
-    error = Set(SPINEL_PROP_MULTIPAN_INTERFACE, SPINEL_DATATYPE_UINT8_S, aValue);
+    error = Set(SPINEL_PROP_MULTIPAN_INTERFACE, SPINEL_DATATYPE_UINT8_S, value);
 
 exit:
     return error;

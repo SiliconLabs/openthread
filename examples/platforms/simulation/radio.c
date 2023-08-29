@@ -167,10 +167,6 @@ static otMacKeyMaterial sCurrKey;
 static otMacKeyMaterial sNextKey;
 static otRadioKeyType   sKeyType;
 
-#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
-static volatile uint8_t sRadioInterface;
-#endif
-
 static int8_t GetRssi(uint16_t aChannel);
 
 #if OPENTHREAD_SIMULATION_VIRTUAL_TIME == 0
@@ -358,36 +354,6 @@ static uint16_t crc16_citt(uint16_t aFcs, uint8_t aByte)
         0x0e70, 0x1ff9, 0xf78f, 0xe606, 0xd49d, 0xc514, 0xb1ab, 0xa022, 0x92b9, 0x8330, 0x7bc7, 0x6a4e, 0x58d5, 0x495c,
         0x3de3, 0x2c6a, 0x1ef1, 0x0f78};
     return (aFcs >> 8) ^ sFcsTable[(aFcs ^ aByte) & 0xff];
-}
-
-otError otPlatGetActiveMultipanInterface(otInstance *aInstance, uint8_t *aRadioInterface)
-{
-    otError error = OT_ERROR_NOT_IMPLEMENTED;
-    OT_UNUSED_VARIABLE(aInstance);
-    OT_UNUSED_VARIABLE(aRadioInterface);
-
-#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
-    *aRadioInterface = sRadioInterface;
-    error            = OT_ERROR_NONE;
-#endif
-
-    return error;
-}
-
-otError otPlatSetActiveMultipanInterface(otInstance *aInstance, uint8_t aRadioInterface, bool aCompletePending)
-{
-    otError error = OT_ERROR_NOT_IMPLEMENTED;
-
-    OT_UNUSED_VARIABLE(aInstance);
-    OT_UNUSED_VARIABLE(aRadioInterface);
-    OT_UNUSED_VARIABLE(aCompletePending);
-
-#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
-    sRadioInterface = aRadioInterface;
-    error           = OT_ERROR_NONE;
-#endif
-
-    return error;
 }
 
 void otPlatRadioGetIeeeEui64(otInstance *aInstance, uint8_t *aIeeeEui64)

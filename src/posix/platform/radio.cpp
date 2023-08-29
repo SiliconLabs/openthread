@@ -419,20 +419,6 @@ void platformRadioUpdateFdSet(otSysMainloopContext *aContext)
     }
 }
 
-otError otPlatGetActiveMultipanInterface(otInstance *aInstance, uint8_t *aRadioInterface)
-{
-    OT_UNUSED_VARIABLE(aInstance);
-    return sRadioSpinel.GetMultipanActiveRadioInterface(aRadioInterface);
-}
-
-otError otPlatSetActiveMultipanInterface(otInstance *aInstance, uint8_t aRadioInterface, bool aCompletePending)
-{
-    OT_UNUSED_VARIABLE(aInstance);
-    otError error = OT_ERROR_NONE;
-    error         = sRadioSpinel.SetMultipanActiveRadioInterface(aRadioInterface, aCompletePending);
-    return error;
-}
-
 #if OPENTHREAD_POSIX_VIRTUAL_TIME
 void virtualTimeRadioSpinelProcess(otInstance *aInstance, const struct VirtualTimeEvent *aEvent)
 {

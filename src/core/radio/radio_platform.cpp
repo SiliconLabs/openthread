@@ -45,18 +45,6 @@ using namespace ot;
 
 #if OPENTHREAD_CONFIG_RADIO_LINK_IEEE_802_15_4_ENABLE
 
-extern "C" void otPlatRadioSwitchoverDone(otInstance *aInstance, bool success)
-{
-    Instance &instance = *static_cast<Instance *>(aInstance);
-
-    VerifyOrExit(instance.IsInitialized());
-
-    instance.Get<Radio::Callbacks>().HandleSwitchoverDone(success);
-
-exit:
-    return;
-}
-
 extern "C" void otPlatRadioReceiveDone(otInstance *aInstance, otRadioFrame *aFrame, otError aError)
 {
     Instance     &instance = AsCoreType(aInstance);
@@ -156,8 +144,6 @@ extern "C" void otPlatDiagRadioTransmitDone(otInstance *aInstance, otRadioFrame 
 #endif
 
 #else // #if OPENTHREAD_CONFIG_RADIO_LINK_IEEE_802_15_4_ENABLE
-
-extern "C" void otPlatRadioSwitchoverDone(otInstance *, bool) {}
 
 extern "C" void otPlatRadioReceiveDone(otInstance *, otRadioFrame *, otError) {}
 
@@ -327,23 +313,4 @@ OT_TOOL_WEAK otError otPlatRadioReceiveAt(otInstance *aInstance, uint8_t aChanne
     OT_UNUSED_VARIABLE(aDuration);
 
     return kErrorNotImplemented;
-}
-
-OT_TOOL_WEAK otError otPlatGetActiveMultipanInterface(otInstance *aInstance, uint8_t *aRadioInterface)
-{
-    OT_UNUSED_VARIABLE(aInstance);
-    OT_UNUSED_VARIABLE(aRadioInterface);
-
-    return OT_ERROR_NOT_IMPLEMENTED;
-}
-
-OT_TOOL_WEAK otError otPlatSetActiveMultipanInterface(otInstance *aInstance,
-                                                      uint8_t     aRadioInterface,
-                                                      bool        aCompletePending)
-{
-    OT_UNUSED_VARIABLE(aInstance);
-    OT_UNUSED_VARIABLE(aRadioInterface);
-    OT_UNUSED_VARIABLE(aCompletePending);
-
-    return OT_ERROR_NOT_IMPLEMENTED;
 }

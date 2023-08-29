@@ -108,6 +108,13 @@ public:
      */
     static NcpBase *GetNcpInstance(void);
 
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    /**
+     * Called to send notification to host about switchower results.
+     */
+    void NotifySwitchoverDone(otInstance *aInstance, bool aSuccess);
+#endif
+
     /**
      * This method returns the IID of the current spinel command.
      *
@@ -272,8 +279,7 @@ protected:
     otError PackRadioFrame(otRadioFrame *aFrame, otError aError);
 
 #if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
-    static void LinkRawSwitchoverDone(otInstance *aInstance, bool aSuccess);
-    void        LinkRawSwitchoverDone(bool aSuccess);
+    void NotifySwitchoverDone(bool aSuccess);
 #endif
 
     static void LinkRawReceiveDone(otInstance *aInstance, otRadioFrame *aFrame, otError aError);

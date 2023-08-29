@@ -462,9 +462,9 @@ public:
 #endif // OPENTHREAD_CONFIG_PLATFORM_RADIO_COEX_ENABLE
 
     /**
-     * Get currently active radio interface.
+     * Get currently active interface.
      *
-     * @param[out] aValue Radio interface index in use.
+     * @param[out] aIid IID of the interface that owns the radio.
      *
      * @retval  OT_ERROR_NONE               Successfully got the property.
      * @retval  OT_ERROR_RESPONSE_TIMEOUT   Failed due to no response received from the transceiver.
@@ -473,18 +473,18 @@ public:
      *                                      (i.e. no active/inactive interface concept in the platform level)
      *
      */
-    otError GetMultipanActiveRadioInterface(uint8_t *aValue);
+    otError GetMultipanActiveInterface(spinel_iid_t *aIid);
 
     /**
      * Sets specified radio interface active
      *
      * This function allows selecting currently active radio interface on platforms that do not support parallel
      * communication on multiple interfaces. I.e. if more than one interface is in receive state calling
-     * SetMultipanActiveRadioInterface guarantees that specified interface will not be losing frames. This function
+     * SetMultipanActiveInterface guarantees that specified interface will not be losing frames. This function
      * returns if the request was received properly. After interface switching is complete SwitchoverDone callback is
      * Invoked. Switching interfaces may take longer if aCompletePending is set true.
      *
-     * @param[in] aValue            Radio interface index to use.
+     * @param[in] aIid              IID of the interface to set active.
      * @param[in] aCompletePending  Set true if pending radio operation should complete first(Soft switch) or false if
      * ongoing operations should be interrupted (Force switch).
      *
@@ -497,7 +497,7 @@ public:
      * @retval  OT_ERROR_ALREADY            Given interface is already active.
      *
      */
-    otError SetMultipanActiveRadioInterface(uint8_t aValue, bool aCompletePending);
+    otError SetMultipanActiveInterface(spinel_iid_t aIid, bool aCompletePending);
 
     /**
      * Returns a reference to the transmit buffer.

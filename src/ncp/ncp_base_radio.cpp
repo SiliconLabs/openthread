@@ -35,6 +35,7 @@
 #include <openthread/link.h>
 #include <openthread/link_raw.h>
 #include <openthread/ncp.h>
+#include <openthread/platform/multipan.h>
 #include <openthread/platform/radio.h>
 #include <openthread/platform/time.h>
 
@@ -124,13 +125,13 @@ exit:
 }
 
 #if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
-void NcpBase::LinkRawSwitchoverDone(otInstance *aInstance, bool aSuccess)
+void NcpBase::NotifySwitchoverDone(otInstance *aInstance, bool aSuccess)
 {
     OT_UNUSED_VARIABLE(aInstance);
-    sNcpInstance->LinkRawSwitchoverDone(aSuccess);
+    NotifySwitchoverDone(aSuccess);
 }
 
-void NcpBase::LinkRawSwitchoverDone(bool aSuccess)
+void NcpBase::NotifySwitchoverDone(bool aSuccess)
 {
     uint8_t         header = SPINEL_HEADER_FLAG | SPINEL_HEADER_IID_BROADCAST;
     spinel_status_t result = aSuccess ? SPINEL_STATUS_SWITCHOVER_DONE : SPINEL_STATUS_SWITCHOVER_FAILED;
@@ -407,14 +408,16 @@ exit:
 
 template <> otError NcpBase::HandlePropertySet<SPINEL_PROP_MULTIPAN_INTERFACE>(void)
 {
-    uint8_t interface;
-    bool    softSwitch;
-    otError error = OT_ERROR_NONE;
+    uint8_t   interface;
+    Instance *instance;
+    bool      softSwitch;
+    otError   error = OT_ERROR_NONE;
 
     SuccessOrExit(error = mDecoder.ReadUint8(interface));
     softSwitch = (interface & SPINEL_MULTIPAN_INTERFACE_SOFT_SWITCH_MASK) != 0;
-    SuccessOrExit(
-        error = otPlatSetActiveMultipanInterface(mInstance, interface & SPINEL_MULTIPAN_INTERFACE_ID_MASK, softSwitch));
+    instance   = IidToInstance(interface & SPINEL_MULTIPAN_INTERFACE_ID_MASK);
+    VerifyOrExit(instance != nullptr, error = OT_ERROR_NOT_IMPLEMENTED); // Instance out of range
+    SuccessOrExit(error = otPlatMultipanSetActiveInstance(instance, softSwitch));
 
 exit:
     return error;
@@ -576,11 +579,13 @@ exit:
 
 template <> otError NcpBase::HandlePropertyGet<SPINEL_PROP_MULTIPAN_INTERFACE>(void)
 {
-    uint8_t interface;
-    otError error = OT_ERROR_NONE;
+    otInstance  *instance;
+    spinel_iid_t iid;
+    otError      error = OT_ERROR_NONE;
 
-    SuccessOrExit(error = otPlatGetActiveMultipanInterface(mInstance, &interface));
-    SuccessOrExit(error = mEncoder.WriteUint8(interface));
+    SuccessOrExit(error = otPlatMultipanGetActiveInstance(&instance));
+    iid = InstanceToIid(static_cast<Instance *>(instance));
+    SuccessOrExit(error = mEncoder.WriteUint8(static_cast<uint8_t>(iid)));
 
 exit:
     return error;

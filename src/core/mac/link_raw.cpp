@@ -56,7 +56,6 @@ LinkRaw::LinkRaw(Instance &aInstance)
     , mReceiveChannel(OPENTHREAD_CONFIG_DEFAULT_CHANNEL)
     , mPanId(kPanIdBroadcast)
     , mReceiveDoneCallback(nullptr)
-    , mSwitchoverDoneCallback(nullptr)
     , mTransmitDoneCallback(nullptr)
     , mEnergyScanDoneCallback(nullptr)
 #if OPENTHREAD_RADIO
@@ -81,8 +80,6 @@ void LinkRaw::Init(void)
     mSubMac.Init();
 #endif
 }
-
-void LinkRaw::SetSwitchoverDone(otLinkRawSwitchoverDone aCallback) { mSwitchoverDoneCallback = aCallback; }
 
 Error LinkRaw::SetReceiveDone(otLinkRawReceiveDone aCallback)
 {
@@ -180,14 +177,6 @@ Error LinkRaw::Receive(void)
 
 exit:
     return error;
-}
-
-void LinkRaw::InvokeSwitchoverDone(bool aSuccess)
-{
-    if (mSwitchoverDoneCallback)
-    {
-        mSwitchoverDoneCallback(&GetInstance(), aSuccess);
-    }
 }
 
 void LinkRaw::InvokeReceiveDone(RxFrame *aFrame, Error aError)

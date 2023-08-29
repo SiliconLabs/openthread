@@ -87,6 +87,35 @@ otError otPlatRadioTransmit(otInstance *aInstance, otRadioFrame *)
     return OT_ERROR_NONE;
 }
 
+otError otPlatMultipanGetActiveInstance(otInstance **aInstance)
+{
+    otError error = OT_ERROR_NOT_IMPLEMENTED;
+    OT_UNUSED_VARIABLE(aInstance);
+
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    *aInstance = sLastInstance;
+    error      = OT_ERROR_NONE;
+#endif
+
+    return error;
+}
+
+otError otPlatMultipanSetActiveInstance(otInstance *aInstance, bool aCompletePending)
+{
+    otError error = OT_ERROR_NOT_IMPLEMENTED;
+    OT_UNUSED_VARIABLE(aInstance);
+    OT_UNUSED_VARIABLE(aCompletePending);
+
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
+    VerifyOrExit(sLastInstance != static_cast<ot::Instance *>(aInstance), error = OT_ERROR_ALREADY);
+    sLastInstance = static_cast<ot::Instance *>(aInstance);
+    error         = OT_ERROR_NONE;
+exit:
+#endif
+
+    return error;
+}
+
 class TestNcp : public NcpBase
 {
 public:
@@ -226,6 +255,13 @@ public:
         endFrame("Transmit Frame");
     }
 
+    void createSwitchoverRequest(uint8_t aIid, bool aForce)
+    {
+        startFrame(SPINEL_CMD_PROP_VALUE_SET, SPINEL_PROP_MULTIPAN_INTERFACE);
+        SuccessOrQuit(mEncoder.WriteUint8(aIid | (aForce ? 0 : (1 << SPINEL_MULTIPAN_INTERFACE_SOFT_SWITCH_SHIFT))));
+        endFrame("Interface Switch Request Frame");
+    }
+
     void createReadStatusFrame()
     {
         startFrame(SPINEL_CMD_PROP_VALUE_GET, SPINEL_PROP_LAST_STATUS);
@@ -250,6 +286,15 @@ public:
     {
         mLastTxTid = mTid;
         createTransmitFrame();
+        sendToRcp();
+        prepareResponse(mLastTxTid);
+        return static_cast<spinel_status_t>(mNcp->getSpinelStatus());
+    };
+
+    spinel_status_t requestSwitchover(uint8_t aIid, bool aForce)
+    {
+        mLastTxTid = mTid;
+        createSwitchoverRequest(aIid, aForce);
         sendToRcp();
         prepareResponse(mLastTxTid);
         return static_cast<spinel_status_t>(mNcp->getSpinelStatus());
@@ -354,7 +399,7 @@ void FreeInstances(void)
     }
 }
 
-void TestNcpBaseTransmitWithLinkRawDisabled()
+void TestNcpBaseTransmitWithLinkRawDisabled(void)
 {
     printf("\tTransmit With Link Raw Disabled");
     InitInstances();
@@ -377,7 +422,7 @@ void TestNcpBaseTransmitWithLinkRawDisabled()
     printf(" - PASS\n");
 }
 
-void TestNcpBaseTransmitWithLinkRawEnabled()
+void TestNcpBaseTransmitWithLinkRawEnabled(void)
 {
     printf("\tTransmit With Link Raw Enabled");
     InitInstances();
@@ -396,7 +441,7 @@ void TestNcpBaseTransmitWithLinkRawEnabled()
     printf(" - PASS\n");
 }
 
-void TestNcpBaseTransmitWithIncorrectLinkRawEnabled()
+void TestNcpBaseTransmitWithIncorrectLinkRawEnabled(void)
 {
     printf("\tTransmit With Incorrect Link Raw Enabled");
     InitInstances();
@@ -420,7 +465,7 @@ void TestNcpBaseTransmitWithIncorrectLinkRawEnabled()
     printf(" - PASS\n");
 }
 
-void TestNcpBaseTransmitOnBoth()
+void TestNcpBaseTransmitOnBoth(void)
 {
     printf("\tTransmit on both interfaces");
     InitInstances();
@@ -442,7 +487,7 @@ void TestNcpBaseTransmitOnBoth()
     printf(" - PASS\n");
 }
 
-void TestNcpBaseDifferentInstanceCall()
+void TestNcpBaseDifferentInstanceCall(void)
 {
     printf("\tTransmit on both interfaces - verify instances used");
 
@@ -484,7 +529,7 @@ void TestNcpBaseDifferentInstanceCall()
     printf(" - PASS\n");
 }
 
-void TestNcpBaseTransmitDoneInterface()
+void TestNcpBaseTransmitDoneInterface(void)
 {
     printf("\tTransmit on both interfaces - verify transmit done IID");
 
@@ -521,7 +566,7 @@ void TestNcpBaseTransmitDoneInterface()
     printf(" - PASS\n");
 }
 
-void TestNcpBaseReceive()
+void TestNcpBaseReceive(void)
 {
     printf("\tReceive on a single interface");
 
@@ -541,7 +586,7 @@ void TestNcpBaseReceive()
     printf(" - PASS\n");
 }
 
-void TestNcpBaseReceiveOnTwoInterfaces()
+void TestNcpBaseReceiveOnTwoInterfaces(void)
 {
     printf("\tReceive on both interfaces");
 
@@ -584,6 +629,110 @@ void TestNcpBaseReceiveOnTwoInterfaces()
     printf(" - PASS\n");
 }
 
+void TestNcpBaseSwitchoverRequest(void)
+{
+    printf("\tSwitchover requests from different interfaces");
+
+    InitInstances();
+
+    TestNcp  ncp(sInstances, OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_NUM);
+    TestHost host1(&ncp, SPINEL_HEADER_IID_0);
+    TestHost host2(&ncp, SPINEL_HEADER_IID_1);
+    TestHost host3(&ncp, SPINEL_HEADER_IID_2);
+
+    sLastInstance = nullptr;
+
+    host1.enableRawLink();
+    host2.enableRawLink();
+    host3.enableRawLink();
+
+    VerifyOrQuit(host1.requestSwitchover(0, true) == 0);
+    VerifyOrQuit(sLastInstance == sInstances[0]);
+    VerifyOrQuit(host1.requestSwitchover(1, true) == 1);
+    VerifyOrQuit(sLastInstance == sInstances[1]);
+    VerifyOrQuit(host1.requestSwitchover(2, true) == 2);
+    VerifyOrQuit(sLastInstance == sInstances[2]);
+    VerifyOrQuit(host2.requestSwitchover(0, true) == 0);
+    VerifyOrQuit(sLastInstance == sInstances[0]);
+    VerifyOrQuit(host2.requestSwitchover(1, true) == 1);
+    VerifyOrQuit(sLastInstance == sInstances[1]);
+    VerifyOrQuit(host2.requestSwitchover(2, true) == 2);
+    VerifyOrQuit(sLastInstance == sInstances[2]);
+    VerifyOrQuit(host3.requestSwitchover(0, true) == 0);
+    VerifyOrQuit(sLastInstance == sInstances[0]);
+    VerifyOrQuit(host3.requestSwitchover(1, true) == 1);
+    VerifyOrQuit(sLastInstance == sInstances[1]);
+    VerifyOrQuit(host3.requestSwitchover(2, true) == 2);
+    VerifyOrQuit(sLastInstance == sInstances[2]);
+
+    printf(" - PASS\n");
+}
+
+void TestNcpBaseSwitchoverRequestFail(void)
+{
+    printf("\tSwitchover requests Fail - same interface");
+
+    InitInstances();
+
+    TestNcp  ncp(sInstances, OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_NUM);
+    TestHost host1(&ncp, SPINEL_HEADER_IID_0);
+    TestHost host2(&ncp, SPINEL_HEADER_IID_1);
+
+    sLastInstance = nullptr;
+
+    host1.enableRawLink();
+    host2.enableRawLink();
+
+    VerifyOrQuit(host1.requestSwitchover(0, true) == 0);
+    VerifyOrQuit(sLastInstance == sInstances[0]);
+
+    VerifyOrQuit(host1.requestSwitchover(0, true) == SPINEL_STATUS_ALREADY);
+    VerifyOrQuit(sLastInstance == sInstances[0]);
+
+    VerifyOrQuit(host2.requestSwitchover(0, true) == SPINEL_STATUS_ALREADY);
+    VerifyOrQuit(sLastInstance == sInstances[0]);
+
+    printf(" - PASS\n");
+}
+
+void TestNcpBaseSwitchoverResponse(void)
+{
+    printf("\tSwitchover responses");
+
+    InitInstances();
+
+    TestNcp  ncp(sInstances, OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_NUM);
+    TestHost host1(&ncp, SPINEL_HEADER_IID_0);
+    TestHost host2(&ncp, SPINEL_HEADER_IID_1);
+
+    sLastInstance = nullptr;
+
+    host1.enableRawLink();
+    host2.enableRawLink();
+
+    VerifyOrQuit(host1.requestSwitchover(0, true) == 0);
+    VerifyOrQuit(sLastInstance == sInstances[0]);
+
+    otPlatMultipanSwitchoverDone(sLastInstance, true);
+
+    VerifyOrQuit(ncp.getSpinelProp() == SPINEL_PROP_LAST_STATUS);
+    VerifyOrQuit(ncp.getLastTid() == 0);
+    VerifyOrQuit(ncp.getLastIid() == SPINEL_HEADER_IID_MULTIPAN_BROADCAST);
+    VerifyOrQuit(ncp.getSpinelStatus() == SPINEL_STATUS_SWITCHOVER_DONE);
+
+    VerifyOrQuit(host1.requestSwitchover(1, true) == 1);
+    VerifyOrQuit(sLastInstance == sInstances[1]);
+
+    otPlatMultipanSwitchoverDone(sLastInstance, false);
+
+    VerifyOrQuit(ncp.getSpinelProp() == SPINEL_PROP_LAST_STATUS);
+    VerifyOrQuit(ncp.getLastTid() == 0);
+    VerifyOrQuit(ncp.getLastIid() == SPINEL_HEADER_IID_MULTIPAN_BROADCAST);
+    VerifyOrQuit(ncp.getSpinelStatus() == SPINEL_STATUS_SWITCHOVER_FAILED);
+
+    printf(" - PASS\n");
+}
+
 ///
 int main(void)
 {
@@ -600,7 +749,13 @@ int main(void)
     printf("Executing Receive Tests\n");
     TestNcpBaseReceive();
     TestNcpBaseReceiveOnTwoInterfaces();
-    printf("Receivet Tests - PASS\n");
+    printf("Receive Tests - PASS\n");
+
+    printf("Executing Interface Switching Tests\n");
+    TestNcpBaseSwitchoverRequest();
+    TestNcpBaseSwitchoverRequestFail();
+    TestNcpBaseSwitchoverResponse();
+    printf("Executing Interface Switching Tests - PASS\n");
 
     printf("\nAll tests passed\n");
 

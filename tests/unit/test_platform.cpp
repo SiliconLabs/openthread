@@ -131,6 +131,10 @@ OT_TOOL_WEAK uint32_t otPlatAlarmMicroGetNow(void)
     return (uint32_t)((tv.tv_sec * 1000000) + tv.tv_usec + 123456);
 }
 
+OT_TOOL_WEAK otError otPlatMultipanGetActiveInstance(otInstance **) { return OT_ERROR_NOT_IMPLEMENTED; }
+
+OT_TOOL_WEAK otError otPlatMultipanSetActiveInstance(otInstance *, bool) { return OT_ERROR_NOT_IMPLEMENTED; }
+
 OT_TOOL_WEAK void otPlatRadioGetIeeeEui64(otInstance *, uint8_t *) {}
 
 OT_TOOL_WEAK void otPlatRadioSetPanId(otInstance *, uint16_t) {}

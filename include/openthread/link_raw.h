@@ -52,24 +52,6 @@ extern "C" {
  */
 
 /**
- * This function pointer on switchover completion
- *
- * @param[in]  aInstance    A pointer to an OpenThread instance.
- * @param[in]  aSuccess     Informs if the operation completed successful or not.
- *
- */
-typedef void (*otLinkRawSwitchoverDone)(otInstance *aInstance, bool aSuccess);
-
-/**
- * This function sets the radio switchover complete callback.
- *
- * @param[in] aInstance     A pointer to an OpenThread instance.
- * @param[in] aCallback     A pointer to a function to call.
- *
- */
-void otLinkRawSetSwitchoverDone(otInstance *aInstance, otLinkRawSwitchoverDone aCallback);
-
-/**
  * Pointer on receipt of a IEEE 802.15.4 frame.
  *
  * @param[in]  aInstance    A pointer to an OpenThread instance.

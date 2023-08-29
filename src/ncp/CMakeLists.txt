@@ -33,6 +33,7 @@ set(COMMON_INCLUDES
 
 set(COMMON_SOURCES
     changed_props_set.cpp
+    multipan_platform.cpp
     ncp_base.cpp
     ncp_base_dispatcher.cpp
     ncp_base_radio.cpp

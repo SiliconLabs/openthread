@@ -267,10 +267,6 @@ NcpBase::NcpBase(Instance **aInstances, uint8_t aCount)
         else
         {
             mInstances[i] = aInstances[i - skipped];
-            if (aInstances[i] != nullptr)
-            {
-                otLinkRawSetSwitchoverDone(aInstances[i], LinkRawSwitchoverDone);
-            }
         }
     }
 }
