@@ -298,7 +298,7 @@ template <typename InterfaceType> void RadioSpinel<InterfaceType>::ResetRcp(bool
     bool hardwareReset;
     bool resetDone = false;
 
-    // Avoid resetting the device twice in a row in RCP_FT architecture
+    // Avoid resetting the device twice in a row in Multipan RCP architecture
     VerifyOrExit(!sIsReady, resetDone = true);
 
     mWaitingKey = SPINEL_PROP_LAST_STATUS;
@@ -2318,7 +2318,7 @@ template <typename InterfaceType> void RadioSpinel<InterfaceType>::RestoreProper
 
 template <typename InterfaceType> otError RadioSpinel<InterfaceType>::GetMultipanActiveInterface(spinel_iid_t *aIid)
 {
-    otError error = Get(SPINEL_PROP_MULTIPAN_INTERFACE, SPINEL_DATATYPE_UINT8_S, aIid);
+    otError error = Get(SPINEL_PROP_MULTIPAN_ACTIVE_INTERFACE, SPINEL_DATATYPE_UINT8_S, aIid);
     LogIfFail("Get GetMultipanActiveInterface failed", error);
     return error;
 }
@@ -2337,7 +2337,7 @@ otError RadioSpinel<InterfaceType>::SetMultipanActiveInterface(spinel_iid_t aIid
         value |= (1 << SPINEL_MULTIPAN_INTERFACE_SOFT_SWITCH_SHIFT);
     }
 
-    error = Set(SPINEL_PROP_MULTIPAN_INTERFACE, SPINEL_DATATYPE_UINT8_S, value);
+    error = Set(SPINEL_PROP_MULTIPAN_ACTIVE_INTERFACE, SPINEL_DATATYPE_UINT8_S, value);
 
 exit:
     return error;

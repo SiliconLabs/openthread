@@ -468,8 +468,8 @@ public:
      *
      * @retval  OT_ERROR_NONE               Successfully got the property.
      * @retval  OT_ERROR_RESPONSE_TIMEOUT   Failed due to no response received from the transceiver.
-     * @retval  OT_ERROR_NOT_IMPLEMENTED    Failed due to lack of the support in radio or platform supprts
-     *                                      all interfaces simultaneously
+     * @retval  OT_ERROR_NOT_IMPLEMENTED    Failed due to lack of the support in radio
+     * @retval  OT_ERROR_INVALID_COMMAND    Platform supports all interfaces simultaneously.
      *                                      (i.e. no active/inactive interface concept in the platform level)
      *
      */
@@ -492,7 +492,7 @@ public:
      * @retval  OT_ERROR_BUSY               Failed due to another operation on going.
      * @retval  OT_ERROR_RESPONSE_TIMEOUT   Failed due to no response received from the transceiver.
      * @retval  OT_ERROR_NOT_IMPLEMENTED    Failed due to lack of support in radio for the given interface id or
-     *                                      platform supprts all interfaces simultaneously
+     * @retval  OT_ERROR_INVALID_COMMAND    Platform supports all interfaces simultaneously
      *                                      (i.e. no active/inactive interface concept in the platform level)
      * @retval  OT_ERROR_ALREADY            Given interface is already active.
      *

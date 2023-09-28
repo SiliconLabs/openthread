@@ -513,8 +513,8 @@ enum
     SPINEL_STATUS_NOT_CAPABLE              = 23, ///< The target is not capable of handling requested operation.
     SPINEL_STATUS_RESPONSE_TIMEOUT         = 24, ///< No response received from remote node
     SPINEL_STATUS_SWITCHOVER_DONE =
-        25, ///< Radio interface switch completed successfully (SPINEL_PROP_MULTIPAN_INTERFACE)
-    SPINEL_STATUS_SWITCHOVER_FAILED = 26, ///< Radio interface switch failed (SPINEL_PROP_MULTIPAN_INTERFACE)
+        25, ///< Radio interface switch completed successfully (SPINEL_PROP_MULTIPAN_ACTIVE_INTERFACE)
+    SPINEL_STATUS_SWITCHOVER_FAILED = 26, ///< Radio interface switch failed (SPINEL_PROP_MULTIPAN_ACTIVE_INTERFACE)
 
     SPINEL_STATUS_JOIN__BEGIN = 104,
 
@@ -4862,7 +4862,7 @@ enum
      * Default value: 0
      *
      */
-    SPINEL_PROP_MULTIPAN_INTERFACE = SPINEL_PROP_MULTIPAN__BEGIN + 0,
+    SPINEL_PROP_MULTIPAN_ACTIVE_INTERFACE = SPINEL_PROP_MULTIPAN__BEGIN + 0,
 
     SPINEL_PROP_MULTIPAN__END = 0x910,
 
@@ -4969,8 +4969,6 @@ typedef uint32_t spinel_prop_key_t;
 #define SPINEL_HEADER_IID_3 SPINEL_HEADER_IID(3)
 
 #define SPINEL_HEADER_INVALID_IID 0xFF
-
-#define SPINEL_HEADER_IID_MULTIPAN_BROADCAST SPINEL_HEADER_IID_3
 
 #define SPINEL_HEADER_GET_IID(x) (((x)&SPINEL_HEADER_IID_MASK) >> SPINEL_HEADER_IID_SHIFT)
 #define SPINEL_HEADER_GET_TID(x) (spinel_tid_t)(((x)&SPINEL_HEADER_TID_MASK) >> SPINEL_HEADER_TID_SHIFT)

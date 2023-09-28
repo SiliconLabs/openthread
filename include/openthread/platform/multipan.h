@@ -29,7 +29,18 @@
 /**
  * @file
  * @brief
- *   This file defines the radio interface for OpenThread.
+ *   This file defines the multipan interface for OpenThread.
+ *
+ *   Multipan RCP is a feature that allows single RCP operate in multiple networks.
+ *
+ *   Curently we support two types of multipan RCP:
+ *   - Full multipan: RCP operates in parallel on both networks (for example using more than one transceiver)
+ *   - Switching RCP: RCP can communicate only with one network at a time and requires network switching mechanism.
+ *                    Switching can be automatic (for example time based, radio sleep based) or manually contolled by
+ *                    the host.
+ *
+ *   Full multipan RCP and Automatic Switching RCP do not require any special care from the host side.
+ *   Manual Switching RCP requires host to switch currently active network.
  *
  */
 
@@ -59,23 +70,23 @@ extern "C" {
  * Get instance currently in control of the radio.
  *
  * If radio does not operate in parallel on all interfaces, this function returns instance object with granted radio
- access
+ * access
  *
  * @param[out]  aInstance        Pointer to the variable for storing active instance pointer
-
+ *
  * @retval  OT_ERROR_NONE               Successfully got the property.
- * @retval  OT_ERROR_NOT_IMPLEMENTED    Failed due lack of the support in radio or platform supprts
- *                                      all interfaces simultaneously
+ * @retval  OT_ERROR_NOT_IMPLEMENTED    Failed due to lack of the support in radio.
+ * @retval  OT_ERROR_INVALID_COMMAND    Platform supports all interfaces simultaneously.
  *                                      (i.e. no active/inactive interface concept in the platform level).
  *
  */
 otError otPlatMultipanGetActiveInstance(otInstance **aInstance);
 
 /**
- * Set `aInstance` as the current active instance controlling radio
+ * Set `aInstance` as the current active instance controlling radio.
  *
  * This function allows selecting currently active instance on platforms that do not support parallel
- * communication on multiple interfaces. I.e. if more than one instance is in receive state calling
+ * communication on multiple interfaces. I.e. if more than one instance is in receive state, calling
  * otPlatMultipanSetActiveInstance guarantees that specified instance will be the one receiving. This function returns
  * if the request was received properly. After interface switching is complete platform should call
  * otPlatMultipanSwitchoverDone. Switching interfaces may take longer if aCompletePending is set true.
@@ -86,8 +97,9 @@ otError otPlatMultipanGetActiveInstance(otInstance **aInstance);
  *
  * @retval  OT_ERROR_NONE               Successfully set the property.
  * @retval  OT_ERROR_BUSY               Failed due to another operation on going.
- * @retval  OT_ERROR_NOT_IMPLEMENTED    Failed due to unknown/to many instances or platform supprts all interfaces
- * simultaneously (i.e. no active/inactive concept in the platform level)
+ * @retval  OT_ERROR_NOT_IMPLEMENTED    Failed due to unknown instance or more instances than interfaces available.
+ * @retval  OT_ERROR_INVALID_COMMAND    Platform supports all interfaces simultaneously
+ *                                      (i.e. no active/inactive interface concept in the platform level)
  * @retval  OT_ERROR_ALREADY            Given interface is already active.
  *
  */

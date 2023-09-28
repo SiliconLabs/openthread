@@ -257,7 +257,7 @@ public:
 
     void createSwitchoverRequest(uint8_t aIid, bool aForce)
     {
-        startFrame(SPINEL_CMD_PROP_VALUE_SET, SPINEL_PROP_MULTIPAN_INTERFACE);
+        startFrame(SPINEL_CMD_PROP_VALUE_SET, SPINEL_PROP_MULTIPAN_ACTIVE_INTERFACE);
         SuccessOrQuit(mEncoder.WriteUint8(aIid | (aForce ? 0 : (1 << SPINEL_MULTIPAN_INTERFACE_SOFT_SWITCH_SHIFT))));
         endFrame("Interface Switch Request Frame");
     }
@@ -717,7 +717,7 @@ void TestNcpBaseSwitchoverResponse(void)
 
     VerifyOrQuit(ncp.getSpinelProp() == SPINEL_PROP_LAST_STATUS);
     VerifyOrQuit(ncp.getLastTid() == 0);
-    VerifyOrQuit(ncp.getLastIid() == SPINEL_HEADER_IID_MULTIPAN_BROADCAST);
+    VerifyOrQuit(ncp.getLastIid() == OPENTHREAD_CONFIG_SPINEL_BROADCAST_IID);
     VerifyOrQuit(ncp.getSpinelStatus() == SPINEL_STATUS_SWITCHOVER_DONE);
 
     VerifyOrQuit(host1.requestSwitchover(1, true) == 1);
@@ -727,7 +727,7 @@ void TestNcpBaseSwitchoverResponse(void)
 
     VerifyOrQuit(ncp.getSpinelProp() == SPINEL_PROP_LAST_STATUS);
     VerifyOrQuit(ncp.getLastTid() == 0);
-    VerifyOrQuit(ncp.getLastIid() == SPINEL_HEADER_IID_MULTIPAN_BROADCAST);
+    VerifyOrQuit(ncp.getLastIid() == OPENTHREAD_CONFIG_SPINEL_BROADCAST_IID);
     VerifyOrQuit(ncp.getSpinelStatus() == SPINEL_STATUS_SWITCHOVER_FAILED);
 
     printf(" - PASS\n");

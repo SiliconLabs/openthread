@@ -133,7 +133,7 @@ void NcpBase::NotifySwitchoverDone(otInstance *aInstance, bool aSuccess)
 
 void NcpBase::NotifySwitchoverDone(bool aSuccess)
 {
-    uint8_t         header = SPINEL_HEADER_FLAG | SPINEL_HEADER_IID_BROADCAST;
+    uint8_t         header = SPINEL_HEADER_FLAG | SPINEL_HEADER_TX_NOTIFICATION_IID;
     spinel_status_t result = aSuccess ? SPINEL_STATUS_SWITCHOVER_DONE : SPINEL_STATUS_SWITCHOVER_FAILED;
 
     IgnoreError(WriteLastStatusFrame(header, result));
@@ -149,7 +149,7 @@ void NcpBase::LinkRawReceiveDone(uint8_t aIid, otRadioFrame *aFrame, otError aEr
 {
     uint8_t header = SPINEL_HEADER_FLAG;
 
-    header |= aIid << SPINEL_HEADER_IID_SHIFT;
+    header |= SPINEL_HEADER_IID(aIid);
     // Append frame header
     SuccessOrExit(mEncoder.BeginFrame(header, SPINEL_CMD_PROP_VALUE_IS, SPINEL_PROP_STREAM_RAW));
 
@@ -406,7 +406,7 @@ exit:
     return error;
 }
 
-template <> otError NcpBase::HandlePropertySet<SPINEL_PROP_MULTIPAN_INTERFACE>(void)
+template <> otError NcpBase::HandlePropertySet<SPINEL_PROP_MULTIPAN_ACTIVE_INTERFACE>(void)
 {
     uint8_t   interface;
     Instance *instance;
@@ -577,7 +577,7 @@ exit:
     return error;
 }
 
-template <> otError NcpBase::HandlePropertyGet<SPINEL_PROP_MULTIPAN_INTERFACE>(void)
+template <> otError NcpBase::HandlePropertyGet<SPINEL_PROP_MULTIPAN_ACTIVE_INTERFACE>(void)
 {
     otInstance  *instance;
     spinel_iid_t iid;

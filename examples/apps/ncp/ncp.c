@@ -66,7 +66,7 @@ void otAppNcpInit(otInstance *aInstance)
 void otAppNcpInitMulti(otInstance **aInstances, uint8_t aCount)
 {
 #if OPENTHREAD_CONFIG_NCP_SPI_ENABLE
-#error SPI not supported on multipan
+#error Multipan support not implemented for SPI
 #else
     IgnoreError(otPlatUartEnable());
 

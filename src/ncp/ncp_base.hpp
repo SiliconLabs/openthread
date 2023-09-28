@@ -63,9 +63,17 @@
 #include "lib/spinel/spinel_encoder.hpp"
 
 #if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
-#define SPINEL_HEADER_IID_BROADCAST SPINEL_HEADER_IID_MULTIPAN_BROADCAST
+#define SPINEL_HEADER_IID_BROADCAST OPENTHREAD_CONFIG_SPINEL_BROADCAST_IID
 #else
 #define SPINEL_HEADER_IID_BROADCAST SPINEL_HEADER_IID_0
+#endif
+
+// In case of host<->ncp<->rcp configuration, notifications shall be
+// received on broadcast iid on ncp, but transmitted on IID 0 to host.
+#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE && OPENTHREAD_RADIO
+#define SPINEL_HEADER_TX_NOTIFICATION_IID SPINEL_HEADER_IID_BROADCAST
+#else
+#define SPINEL_HEADER_TX_NOTIFICATION_IID SPINEL_HEADER_IID_0
 #endif
 
 namespace ot {
@@ -78,6 +86,11 @@ public:
     {
         kSpinelCmdHeaderSize = 2, ///< Size of spinel command header (in bytes).
         kSpinelPropIdSize    = 3, ///< Size of spinel property identifier (in bytes).
+#if OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE && OPENTHREAD_RADIO
+        kSpinelInterfaceCount = SPINEL_HEADER_IID_MAX + 1, // Number of supported spinel interfaces
+#else
+        kSpinelInterfaceCount = 1, // Only one interface supported in single instance configuration
+#endif
     };
 
     /**
@@ -107,6 +120,35 @@ public:
      *
      */
     static NcpBase *GetNcpInstance(void);
+
+    /**
+     * Returns an IID for the given instance
+     *
+     * Returned IID is an integer value that must be shifted by SPINEL_HEADER_IID_SHIFT before putting into spinel
+     * header. If multipan interface is not enabled or build is not for RCP IID=0 is returned. If nullptr is passed it
+     * matches broadcast IID in current implementation. Broadcast IID is also returned in case no match was found.
+     *
+     * @param[in] aInstance  Instance pointer to match with IID
+     *
+     * @returns Spinel Interface Identifier to use for communication for this instance
+     *
+     */
+    uint8_t InstanceToIid(Instance *aInstance);
+
+    /**
+     * Returns an OT instance for the given IID
+     *
+     * Returns an OpenThread instance object associated to the given IID.
+     * If multipan interface is not enabled or build is not for RCP returned value is the same instance object
+     * regardless of the aIid parameter In current implementation nullptr is returned for broadcast IID and values
+     * exceeding the instances count but lower than kSpinelInterfaceCount.
+     *
+     * @param[in] aIid  IID used in the Spinel communication
+     *
+     * @returns OpenThread instance object associated with the given IID
+     *
+     */
+    Instance *IidToInstance(uint8_t aIid);
 
 #if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE
     /**
@@ -578,41 +620,11 @@ protected:
     static spinel_status_t ThreadErrorToSpinelStatus(otError aError);
     static uint8_t         LinkFlagsToFlagByte(bool aRxOnWhenIdle, bool aDeviceType, bool aNetworkData);
 
-    /**
-     * Returns an IID for the given instance
-     *
-     * Returned IID is an integer value that must be shifted by SPINEL_HEADER_IID_SHIFT before putting into spinel
-     * header. If multipan interface is not enabled or build is not for RCP IID=0 is returned. If nullptr is passed it
-     * matches broadcast IID in current implementation. Broadcast IID is also returned in case no match was found.
-     *
-     * @param[in] aInstance  Instance pointer to match with IID
-     *
-     * @returns Spinel Interface Identifier to use for communication for this instance
-     *
-     */
-    uint8_t InstanceToIid(Instance *aInstance);
-
-    /**
-     * Returns an OT instance for the given IID
-     *
-     * Returns an OpenThread instance object associated to the given IID.
-     * If multipan interface is not enabled or build is not for RCP returned value is the same instance object
-     * regardless of the aIid parameter In current implementation nullptr is returned for broadcast IID and values
-     * exceeding the instances count but lower than kSpinelInterfaceCount.
-     *
-     * @param[in] aIid  IID used in the Spinel communication
-     *
-     * @returns OpenThread instance object associated with the given IID
-     *
-     */
-    Instance *IidToInstance(uint8_t aIid);
-
     enum
     {
-        kTxBufferSize         = OPENTHREAD_CONFIG_NCP_TX_BUFFER_SIZE, // Tx Buffer size (used by mTxFrameBuffer).
-        kResponseQueueSize    = OPENTHREAD_CONFIG_NCP_SPINEL_RESPONSE_QUEUE_SIZE,
-        kSpinelInterfaceCount = SPINEL_HEADER_IID_MAX + 1, // Number of supported spinel interfaces
-        kInvalidScanChannel   = -1,                        // Invalid scan channel.
+        kTxBufferSize       = OPENTHREAD_CONFIG_NCP_TX_BUFFER_SIZE, // Tx Buffer size (used by mTxFrameBuffer).
+        kResponseQueueSize  = OPENTHREAD_CONFIG_NCP_SPINEL_RESPONSE_QUEUE_SIZE,
+        kInvalidScanChannel = -1, // Invalid scan channel.
     };
 
     Instance *mInstance;

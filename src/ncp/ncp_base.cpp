@@ -51,14 +51,6 @@
 namespace ot {
 namespace Ncp {
 
-// In case of host<->ncp<->rcp configuration, notifications shall be
-// received on broadcast iid on ncp, but transmitted on IID 0 to host.
-#if OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE && OPENTHREAD_RADIO
-#define SPINEL_HEADER_TX_NOTIFICATION_IID SPINEL_HEADER_IID_BROADCAST
-#else
-#define SPINEL_HEADER_TX_NOTIFICATION_IID SPINEL_HEADER_IID_0
-#endif
-
 // ----------------------------------------------------------------------------
 // MARK: Utility Functions
 // ----------------------------------------------------------------------------
@@ -251,23 +243,21 @@ NcpBase *NcpBase::sNcpInstance = nullptr;
 NcpBase::NcpBase(Instance **aInstances, uint8_t aCount)
     : NcpBase(aInstances[0])
 {
-    OT_UNUSED_VARIABLE(aCount);
     OT_ASSERT(aCount > 0);
-    OT_ASSERT(aCount < SPINEL_HEADER_IID_MAX + 1);
+    OT_ASSERT(aCount < SPINEL_HEADER_IID_MAX); // One IID reserved for broadcast
 
     uint8_t skipped = 0;
 
     for (int i = 0; i < aCount; i++)
     {
-        if (i == SPINEL_HEADER_GET_IID(SPINEL_HEADER_IID_BROADCAST))
+        if ((i + skipped) == SPINEL_HEADER_GET_IID(SPINEL_HEADER_IID_BROADCAST))
         {
-            mInstances[i] = nullptr;
+            mInstances[i + skipped] = nullptr;
             skipped++;
         }
-        else
-        {
-            mInstances[i] = aInstances[i - skipped];
-        }
+
+        OT_ASSERT(i + skipped <= SPINEL_HEADER_IID_MAX);
+        mInstances[i + skipped] = aInstances[i];
     }
 }
 #endif // OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE  && OPENTHREAD_RADIO
@@ -856,7 +846,7 @@ otError NcpBase::SendQueuedResponses(void)
         if (entry.mIsInUse)
         {
             uint8_t header = SPINEL_HEADER_FLAG;
-            header |= static_cast<uint8_t>(entry.mIid << SPINEL_HEADER_IID_SHIFT);
+            header |= SPINEL_HEADER_IID(entry.mIid);
             header |= static_cast<uint8_t>(entry.mTid << SPINEL_HEADER_TID_SHIFT);
 
             if (entry.mType == kResponseTypeLastStatus)
