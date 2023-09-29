@@ -45,18 +45,6 @@ if(OT_SIMULATION_MAX_NETWORK_SIZE)
     target_compile_definitions(ot-simulation-config INTERFACE "OPENTHREAD_SIMULATION_MAX_NETWORK_SIZE=${OT_SIMULATION_MAX_NETWORK_SIZE}")
 endif()
 
-option(OT_MULTIPAN_TEST "enable multipan testing (not compatible with toranj)")
-if(OT_MULTIPAN_TEST)
-    target_compile_options(ot-config-radio
-        INTERFACE
-            "-DOPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE=1"
-            "-DOPENTHREAD_CONFIG_MULTIPLE_STATIC_INSTANCE_ENABLE=1"
-            "-DOPENTHREAD_CONFIG_LOG_PREPEND_UPTIME=0"
-            "-DOPENTHREAD_CONFIG_MAC_SOFTWARE_CSMA_BACKOFF_ENABLE=0" # used to skip backoff and request tx from platform directly.
-            "-DOPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE=1"
-    )
-endif()
-
 if(NOT OT_PLATFORM_CONFIG)
     set(OT_PLATFORM_CONFIG "openthread-core-simulation-config.h" PARENT_SCOPE)
 endif()

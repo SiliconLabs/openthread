@@ -85,7 +85,7 @@ target_compile_options(ot-test-platform-rcp
         ${COMMON_COMPILE_OPTIONS_RCP}
 )
 
-if(OT_MULTIPAN_TEST)
+if(OT_MULTIPAN_RCP)
     target_compile_options(ot-test-platform-rcp
         PRIVATE
             "-DOPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE=1"
@@ -803,7 +803,7 @@ target_link_libraries(ot-test-multicast-listeners-table
 
 add_test(NAME ot-test-multicast-listeners-table COMMAND ot-test-multicast-listeners-table)
 
-if(OT_MULTIPAN_TEST)
+if(OT_MULTIPAN_RCP)
     add_executable(ot-test-multipan-rcp-instances
         test_multipan_rcp_instances.cpp
     )
@@ -822,6 +822,11 @@ if(OT_MULTIPAN_TEST)
     target_compile_definitions(ot-test-multipan-rcp-instances
         PRIVATE
             "OPENTHREAD_CONFIG_MULTIPAN_RCP_ENABLE=1"
+    )
+
+    target_compile_options(ot-config-radio
+        INTERFACE
+            "-DOPENTHREAD_CONFIG_MAC_SOFTWARE_CSMA_BACKOFF_ENABLE=0" # used to skip backoff and request tx from platform directly.
     )
 
     target_link_libraries(ot-test-multipan-rcp-instances
