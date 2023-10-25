@@ -92,6 +92,16 @@ Instance *NcpBase::IidToInstance(uint8_t aIid)
     return instance;
 }
 
+extern "C" otInstance* otIidToInstance(uint8_t aIid)
+{
+    return ot::Ncp::NcpBase::GetNcpInstance()->IidToInstance(aIid);
+}
+
+extern "C" uint8_t otInstanceToIid(otInstance *aInstance)
+{
+    return ot::Ncp::NcpBase::GetNcpInstance()->InstanceToIid(static_cast<ot::Instance *>(aInstance));
+}
+
 #if OPENTHREAD_RADIO || OPENTHREAD_CONFIG_LINK_RAW_ENABLE
 static bool HasOnly1BitSet(uint32_t aValue) { return aValue != 0 && ((aValue & (aValue - 1)) == 0); }
 
